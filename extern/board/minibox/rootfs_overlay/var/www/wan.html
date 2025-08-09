@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/pico.orange.min.css">
+    <link rel="stylesheet" href="css/minibox.css">
+    <link rel="stylesheet" href="css/bootstrap.icons.css">
+
+    <script defer src="js/minibox-tools.js"></script>
+    <script defer src="js/minibox-i18n.js"></script>
+    <script defer src="js/minibox.js"></script>
+    <script defer src="js/alpine.mask.min.js"></script>
+    <script defer src="js/alpine.i18n.min.js"></script>
+    <script defer src="js/alpine.min.js"></script>
+
+    <title x-data="" x-text="$t('basic.appliance_full_name')"></title>
+</head>
+<body>
+    <dialog x-data="mnbox_getAuthService()" x-init="init()" x-ref="dialog">
+        <article>
+            <h2 x-text="$t('login_dialog.title')"></h2>
+            <p x-text="$t('login_dialog.provide_password')"></p>
+            <p x-text="errorMsg" class="mnbox-color-fail"></p>
+            <fieldset>
+                <label>
+                    <input x-model="password" :placeholder="$t('login_dialog.password')" type="password" name="password">
+                </label>
+            </fieldset>
+            <footer>
+                <button x-text="$t('login_dialog.login_button')" @click.prevent="doLogin()"></button>
+            </footer>
+        </article>
+    </dialog>
+    <main class="container mnbox-container">
+        <header>
+            <h1 x-data="" x-text="$t('basic.appliance_full_name')"></h1>
+        </header>
+        <aside x-data="" class="mnbox-menu">
+                <a href="index.html" :data-tooltip="$t('menu_bar.status_tooltip')"><article><i class="bi bi-motherboard"></i> <span x-text="$t('menu_bar.status')"></span></article></a>
+                <a href="wan.html" :data-tooltip="$t('menu_bar.wan_tooltip')" class="secondary"><article><i class="bi bi-globe2"></i> <span x-text="$t('menu_bar.wan')"></span></article></a>
+                <a href="lan.html" :data-tooltip="$t('menu_bar.lan_tooltip')"><article><i class="bi bi-ethernet"></i> <span x-text="$t('menu_bar.lan')"></span></article></a>
+                <a href="security.html" :data-tooltip="$t('menu_bar.security_tooltip')"><article><i class="bi bi-lock"></i> <span x-text="$t('menu_bar.security')"></span></article></a>
+                <a href="device.html" :data-tooltip="$t('menu_bar.device_tooltip')"><article><i class="bi bi-plug"></i> <span x-text="$t('menu_bar.device')"></span></article></a>
+                <a href="help.html" :data-tooltip="$t('menu_bar.help_tooltip')"><article><i class="bi bi-info-circle"></i> <span x-text="$t('menu_bar.help')"></span></article></a>
+                <a href="" :data-tooltip="$t('menu_bar.logout_tooltip')" @click.prevent="mnbox_authService.logout()" class="contrast"><article><i class="bi bi-box-arrow-left"></i> <span x-text="$t('menu_bar.logout')"></span></article></a>
+        </aside>
+        <main class="mnbox-main">
+            <div class="mnbox-main-header">
+                <h3 x-data="" x-text="$t('wan_page.title')"></h3>
+            </div>
+            <div x-data="mnbox_configPage()" x-init="initBase()" class="mnbox-main-col-config">
+                <dialog x-show="showLoading" x-transition x-transition.delay.400ms open><span x-text="loadingText" aria-busy="true"></span></dialog>
+                <article>
+                    <h5 x-text="$t('wan_page.ethernet_settings')"></h5>
+                    <hr>
+                    <fieldset>
+                        <label>
+                            <input x-model.boolean="config.use_vlan" type="checkbox" role="switch">
+                            <span x-text="$t('wan_page.enable_vlan')"></span>
+                        </label>
+                    </fieldset>
+                    <fieldset class="grid">
+                        <label>
+                            <span x-text="$t('wan_page.vlan_id')"></span>
+                            <input x-model.number="config.vlan_id" type="number" placeholder="1" min="1" max="4094">
+                        </label>
+                        <label>
+                            <span x-text="$t('wan_page.vlan_pcp')"></span>
+                            <input x-model.number="config.vlan_pcp" type="number" placeholder="0" min="0" max="7">
+                        </label>
+                    </fieldset>
+                    <small x-text="$t('wan_page.according_isp')"></small>
+                    <fieldset class="grid">
+                        <label>
+                            <span x-text="$t('wan_page.pppoe_mac')"></span>
+                            <input x-model="config.pppoe_mac" x-mask:dynamic="mnbox_getMacMask($input)" type="text" placeholder="XX:XX:XX:XX:XX:XX">
+                        </label>
+                    </fieldset>
+                </article>
+                <article>
+                    <h5 x-text="$t('wan_page.pppoe_settings')"></h5>
+                    <hr>
+                    <fieldset class="grid">
+                        <label>
+                            <span x-text="$t('wan_page.pppoe_user')"></span>
+                            <input x-model="config.pppoe_user" type="text" >
+                        </label>
+                        <label>
+                            <span x-text="$t('wan_page.pppoe_password')"></span>
+                            <input x-model="config.pppoe_password" type="password" :placeholder="$t('wan_page.hidden')">
+                        </label>
+                    </fieldset>
+                    <fieldset>
+                        <label>
+                            <span x-text="$t('wan_page.pppoe_service')"></span>
+                            <input x-model="config.pppoe_service" type="text">
+                        </label>
+                        <label>
+                            <span x-text="$t('wan_page.pppoe_mtu')"></span>
+                            <input x-model.number="config.pppoe_mtu" type="number" placeholder="1492" min="1492">
+                        </label>
+                    </fieldset>
+                </article>
+                <article>
+                    <fieldset>
+                        <button @click.prevent="saveWithReboot(config)" x-text="$t('basic.save_changes')" :data-tooltip="$t('basic.save_changes_tooltip')"></button>
+                    </fieldset>
+                    <span x-text="saveStatus" :class="saveStatusClass"></span>
+                </article>
+            </div>
+            <div x-data="" class="mnbox-main-col-help">
+                <article>
+                    <h6 x-text="$t('wan_page.help_ethernet')"></h6>
+                    <hr>
+                    <p x-html="$t('wan_page.help_ethernet_text1')"></p>
+                    <p x-html="$t('wan_page.help_ethernet_text2')"></p>
+                    <p x-html="$t('wan_page.help_ethernet_text3')"></p>
+                </article>
+                <article>
+                    <h6 x-text="$t('wan_page.help_pppoe')"></h6>
+                    <hr>
+                    <p x-html="$t('wan_page.help_pppoe_text1')"></p>
+                    <p x-html="$t('wan_page.help_pppoe_text2')"></p>
+                    <p x-html="$t('wan_page.help_pppoe_text3')"></p>
+                </article>
+            </div>
+        </main>
+        <footer x-data="" x-text="$t('basic.footer_text')"></footer>
+    </main>
+</body>
+</html>

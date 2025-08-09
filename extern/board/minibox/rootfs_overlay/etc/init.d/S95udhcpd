@@ -1,0 +1,102 @@
+#!/bin/sh
+
+# Custom uDHCPd init file for Minibox PPPoE Annihilator
+DAEMON="udhcpd"
+
+EXEC="/usr/sbin/$DAEMON"
+PIDFILE="/var/run/$DAEMON.pid"
+UDHCPD_CONF="/etc/udhcpd.conf"
+
+start() {
+    printf '[MNBOX] Starting %s: ' "$DAEMON"
+
+    ## Minibox DHCP configuration
+    # Read Minibox configuration
+    . /etc/minibox.static
+    . /etc/minibox.cfg
+
+    # Check if we should even enable DHCP
+    if [ "$LAN_DHCP" -ne 1 ]; then
+        echo "DISABLED IN CONFIG"
+        return 2
+    fi
+
+    # Check if we have PPP_IP and PPP_GW
+    if [ -f "/etc/minibox.dynamic" ]; then
+        . /etc/minibox.dynamic
+        if [ -z "$PPP_IP" ] || [ -z "$PPP_GW" ]; then
+            echo "NO PPP SESSION ESTABLISHED"
+            return 3
+        fi
+    fi
+
+    # Create uDHCPd configuration
+    MASK=$(/usr/bin/ipcalc -m "$PPP_IP/$LAN_MASK" | cut -d= -f2)
+    cat > "$UDHCPD_CONF" <<EOF
+interface $LAN_IF
+option lease $LAN_LEASE
+lease_file /var/run/udhcpd.leases
+
+start $PPP_IP
+end $PPP_IP
+option subnet $MASK
+option router $PPP_GW
+EOF
+
+    # Supply DNS servers if configured
+    if [ -n "$PPP_DNS" ]; then
+        echo "option dns $PPP_DNS" >> "$UDHCPD_CONF"
+    fi
+
+    # Clear uDHCPd leases
+    # Theoretically /var/run is on tmpfs but better
+    # safe than sorry
+    /usr/bin/rm /var/run/udhcpd.leases >/dev/null 2>&1
+
+    # shellcheck disable=SC2086 # we need the word splitting
+    start-stop-daemon -S -q -p "$PIDFILE" -x "$EXEC" \
+        -- $UDHCPD_CONF
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+
+    return $status
+}
+
+stop() {
+    printf '[MNBOX] Stopping %s: ' "$DAEMON"
+
+    # Check if already running
+    if [ ! -f "$PIDFILE" ]; then
+        echo "NOT RUNNING"
+        return 0
+    fi
+
+    start-stop-daemon -p "$PIDFILE" -q -K 
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+
+    return $status
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac

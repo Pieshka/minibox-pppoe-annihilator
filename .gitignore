@@ -1,0 +1,2 @@
+# Ignore scripts specific to ones setup
+priv_*.sh

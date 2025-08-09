@@ -1,0 +1,72 @@
+#!/bin/sh
+
+# Gets free IP from specified pool
+# Usage: ./get_free_ip.sh <IP> <MASK_CIDR>
+
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <IP> <MASK_CIDR>"
+    exit 1
+fi
+
+IPLOCAL="$1"
+MASK="$2"
+
+# Get info from ipcalc
+eval $(ipcalc -n "$IPLOCAL/$MASK")
+eval $(ipcalc -b "$IPLOCAL/$MASK")
+
+NETWORK_IP="${NETWORK#*=}"
+BROADCAST_IP="${BROADCAST#*=}"
+
+# Convert IP to number
+ip_to_num() {
+    n=0; ip=$1
+    n=$((n*256+${ip%%.*})); ip=${ip#*.}
+    n=$((n*256+${ip%%.*})); ip=${ip#*.}
+    n=$((n*256+${ip%%.*})); ip=${ip#*.}
+    n=$((n*256+${ip%%.*}))
+    echo $n
+}
+
+# Convert number to IP
+num_to_ip() {
+    echo $(($1 >> 24 & 255)).$(($1 >> 16 & 255)).$(($1 >> 8 & 255)).$(($1 & 255))
+}
+
+# Special case: netmask /31
+if [ "$MASK" -eq 31 ]; then
+    if [ "$NETWORK_IP" = "$IPLOCAL" ]; then
+        echo $BROADCAST_IP
+    else
+        echo $NETWORK_IP
+    fi
+    exit 0
+fi
+
+# Get next free IP
+network_num=$(ip_to_num "$NETWORK_IP")
+broadcast_num=$(ip_to_num "$BROADCAST_IP")
+
+MIN_IP=$(num_to_ip $((network_num + 1)))
+MAX_IP=$(num_to_ip $((broadcast_num - 1)))
+
+current_ip_num=$(ip_to_num "$MIN_IP")
+
+while : ; do
+    current_ip=$(num_to_ip "$current_ip_num")
+    
+    if [ "$current_ip" != "$IPLOCAL" ] && \
+       [ "$current_ip" != "$NETWORK_IP" ] && \
+       [ "$current_ip" != "$BROADCAST_IP" ]; then
+        echo "$current_ip"
+        break
+    fi
+    
+    current_ip_num=$((current_ip_num + 1))
+    [ "$current_ip_num" -gt "$(ip_to_num "$MAX_IP")" ] && {
+        echo "Error: No available IP addresses in range" >&2
+        exit 1
+    }
+done
+
+exit 0

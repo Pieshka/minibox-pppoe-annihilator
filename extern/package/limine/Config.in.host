@@ -1,0 +1,4 @@
+config BR2_PACKAGE_HOST_LIMINE
+    bool "host-limine"
+    help
+        Limine bootloader used in Minibox

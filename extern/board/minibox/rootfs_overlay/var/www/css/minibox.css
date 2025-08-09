@@ -1,0 +1,103 @@
+*
+{
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html,body,main
+{
+    height: 100%;
+}
+
+a
+{
+    text-decoration: none;
+}
+
+table td:last-child, table th:last-child
+{
+    text-align: right;
+}
+
+table td:first-child
+{
+    font-weight: 600;
+}
+
+[data-slots] { font-family: monospace }
+
+.mnbox-container
+{
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr auto;
+    column-gap: 60px;
+    row-gap: 15px;
+}
+
+.mnbox-container > header,
+.mnbox-container > footer
+{
+    grid-column: 1 / span 2;
+}
+
+.mnbox-container > footer
+{
+    text-align: center;
+    color: var(--pico-range-border-color);
+    font-size: 90%;
+    padding: 15px;
+}
+
+.mnbox-main
+{
+    display: grid;
+    grid-template-columns: 67% 33%;
+    grid-template-rows: auto 1fr;
+    column-gap: 15px;
+}
+
+.mnbox-main > .mnbox-main-header,
+.mnbox-main > .mnbox-main-footer
+{
+    grid-column: 1 / span 2;
+}
+
+.mnbox-main-header > h3
+{
+    display: inline-block;
+    padding: var(--pico-block-spacing-vertical) var(--pico-block-spacing-horizontal);
+    border-radius: var(--pico-border-radius);
+    background-color: var(--pico-card-background-color);
+    box-shadow: var(--pico-card-box-shadow);
+}
+
+.mnbox-main > article
+{
+    grid-column: 1 / span 2;
+}
+
+.mnbox-main-col-help
+{
+    font-size: 65%;
+}
+
+.mnbox-color-good
+{
+    color: #398712;
+}
+
+.mnbox-color-neutral
+{
+    color: #3C71F7;
+}
+
+.mnbox-color-warning
+{
+    color: #977000;
+}
+
+.mnbox-color-fail
+{
+    color: #D93526;
+}

@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Simple CGI script for checking if we are in the middle of a shutdown
+
+SHUTDOWN=""
+if [ -f "/tmp/shutdown_flag" ]; then
+    SHUTDOWN=$(/usr/bin/cat /tmp/shutdown_flag)
+    if [ "$SHUTDOWN" = "1" ]; then
+        # If we are in the middle of a shutdown, we refuse to brew coffee with a teapot
+        echo -ne "HTTP/1.1 418 I'm a teapot\r\n"
+        echo -ne "Content-Type: text/plain\r\n\r\n"
+        echo -ne "can't brew coffee with a teapot!\n"
+        exit 1
+    fi
+fi
+
+# Otherwise we are good
+# JavaScript UI is looking for the message "yes I'm alive" - we can't change that
+echo -ne "HTTP/1.1 200 OK\r\n"
+echo -ne "Content-Type: text/plain\r\n\r\n"
+echo -ne "yes I'm alive\n"
+exit 0

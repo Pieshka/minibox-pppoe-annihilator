@@ -1,0 +1,22 @@
+source "$BR2_EXTERNAL_MINIBOX_PATH/package/webapi/Config.in"
+source "$BR2_EXTERNAL_MINIBOX_PATH/package/limine/Config.in.host"
+
+config BR2_MINIBOX_DEFAULT_WAN_INTERFACE
+	string "Default WAN interface used by Minibox"
+	default "eth0"
+
+config BR2_MINIBOX_DEFAULT_LAN_INTERFACE
+	string "Default LAN interface used by Minibox"
+	default "eth1"
+
+config BR2_MINIBOX_DEFAULT_IP
+	string "Default IP"
+	default "192.168.77.1"
+
+config BR2_MINIBOX_DEFAULT_MASK
+	string "Default netmask in short form"
+	default "24"
+
+config BR2_MINIBOX_VERSION
+	string "Minibox version"
+	default "1.0.0"

@@ -1,0 +1,50 @@
+#!/bin/sh
+
+#
+# Configure LAN interfaces
+#
+
+MINIBOX_DYNAMIC="/etc/minibox.dynamic"
+
+# Read minibox configuration
+. /etc/minibox.cfg
+. /etc/minibox.static
+
+# Clear LAN interface
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Clearing LAN interface... "
+if ! /usr/sbin/ip addr flush dev "$LAN_IF"; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot flush addresses of $LAN_IF)"
+    exit 1
+fi
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+# Flush default routes
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Clearing default routes... "
+if ! /usr/sbin/ip route flush dev "$DEVICE"; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot flush routes of $DEVICE)"
+    exit 1
+fi
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+# Clear minibox dynamic file 
+echo "PPP_IP=" > "$MINIBOX_DYNAMIC"
+echo "PPP_GW=" >> "$MINIBOX_DYNAMIC"
+echo "PPP_DNS=" >> "$MINIBOX_DYNAMIC"
+
+# Stop uDHCPd Server
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Stopping uDHCPd Server... "
+if ! /etc/init.d/S95udhcpd stop; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot stop uDHCPd Server)"
+    exit 1
+fi
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+# Bring back default IP on LAN
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Setting default IP on LAN... "
+if ! /usr/sbin/ip addr add "$DEFAULT_IP" dev "$LAN_IF"; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot set LAN IP)"
+    exit 1
+fi
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+exit 0

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/pico.orange.min.css">
+    <link rel="stylesheet" href="css/minibox.css">
+    <link rel="stylesheet" href="css/bootstrap.icons.css">
+
+    <script defer src="js/minibox-i18n.js"></script>
+    <script defer src="js/minibox.js"></script>
+    <script defer src="js/alpine.mask.min.js"></script>
+    <script defer src="js/alpine.i18n.min.js"></script>
+    <script defer src="js/alpine.min.js"></script>
+
+    <title x-data="" x-text="$t('basic.appliance_full_name')"></title>
+</head>
+<body>
+    <dialog x-data="mnbox_getAuthService()" x-init="init()" x-ref="dialog">
+        <article>
+            <h2 x-text="$t('login_dialog.title')"></h2>
+            <p x-text="$t('login_dialog.provide_password')"></p>
+            <p x-text="errorMsg" class="mnbox-color-fail"></p>
+            <fieldset>
+                <label>
+                    <input x-model="password" :placeholder="$t('login_dialog.password')" type="password" name="password">
+                </label>
+            </fieldset>
+            <footer>
+                <button x-text="$t('login_dialog.login_button')" @click.prevent="doLogin()"></button>
+            </footer>
+        </article>
+    </dialog>
+    <main class="container mnbox-container">
+        <header>
+            <h1 x-data="" x-text="$t('basic.appliance_full_name')"></h1>
+        </header>
+        <aside x-data="" class="mnbox-menu">
+                <a href="index.html" :data-tooltip="$t('menu_bar.status_tooltip')" class="secondary"><article><i class="bi bi-motherboard"></i> <span x-text="$t('menu_bar.status')"></span></article></a>
+                <a href="wan.html" :data-tooltip="$t('menu_bar.wan_tooltip')"><article><i class="bi bi-globe2"></i> <span x-text="$t('menu_bar.wan')"></span></article></a>
+                <a href="lan.html" :data-tooltip="$t('menu_bar.lan_tooltip')"><article><i class="bi bi-ethernet"></i> <span x-text="$t('menu_bar.lan')"></span></article></a>
+                <a href="security.html" :data-tooltip="$t('menu_bar.security_tooltip')"><article><i class="bi bi-lock"></i> <span x-text="$t('menu_bar.security')"></span></article></a>
+                <a href="device.html" :data-tooltip="$t('menu_bar.device_tooltip')"><article><i class="bi bi-plug"></i> <span x-text="$t('menu_bar.device')"></span></article></a>
+                <a href="help.html" :data-tooltip="$t('menu_bar.help_tooltip')"><article><i class="bi bi-info-circle"></i> <span x-text="$t('menu_bar.help')"></span></article></a>
+                <a href="" :data-tooltip="$t('menu_bar.logout_tooltip')" @click.prevent="mnbox_authService.logout()" class="contrast"><article><i class="bi bi-box-arrow-left"></i> <span x-text="$t('menu_bar.logout')"></span></article></a>
+        </aside>
+        <main class="mnbox-main">
+            <div x-data="" class="mnbox-main-header">
+                <h3 x-text="$t('status_page.title')"></h3>
+            </div>
+            <div x-data="mnbox_statusPage()" x-init="initBase()" class="mnbox-main-col-config">
+                <dialog x-show="showLoading" x-transition x-transition.delay.400ms open><span x-text="loadingText" aria-busy="true"></span></dialog>
+                <article>
+                    <h5 x-text="$t('status_page.interfaces')"></h5>
+                    <hr>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th x-text="$t('status_page.interface')"></th>
+                                <th x-text="$t('status_page.if_name')"></th>
+                                <th x-text="$t('status_page.state')"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td x-text="$t('status_page.wan')"></td>
+                                <td x-text="wan.if"></td>
+                                <td x-text="wan.status" :class="wan.statusClass"></td>
+                            </tr>
+                            <tr x-show="vlan.show">
+                                <td x-text="$t('status_page.vlan', {id: vlan.id, pcp: vlan.pcp})"></td>
+                                <td x-text="vlan.if"></td>
+                                <td x-text="vlan.status" :class="vlan.statusClass"></td>
+                            </tr>
+                            <tr>
+                                <td x-text="$t('status_page.pppoe')"></td>
+                                <td x-text="ppp.if"></td>
+                                <td x-text="ppp.status" :class="ppp.statusClass"></td>
+                            </tr>
+                            <tr>
+                                <td x-text="$t('status_page.lan')"></td>
+                                <td x-text="lan.if"></td>
+                                <td x-text="lan.status" :class="lan.statusClass"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+                <article>
+                    <h5 x-text="$t('status_page.internal_services')"></h5>
+                    <hr>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th x-text="$t('status_page.service')"></th>
+                                <th x-text="$t('status_page.state')"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td x-text="$t('status_page.dhcp_server')"></td>
+                                <td x-text="dhcpd.status" :class="dhcpd.statusClass"></td>
+                            </tr>
+                            <tr>
+                                <td x-text="$t('status_page.ppp_client')"></td>
+                                <td x-text="pppd.status" :class="pppd.statusClass"></td>
+                            </tr>
+                            <tr>
+                                <td x-text="$t('status_page.http_server')"></td>
+                                <td x-text="httpd.status" :class="httpd.statusClass"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+                <article>
+                    <h5 x-text="$t('status_page.device_addresses')"></h5>
+                    <hr>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th x-text="$t('status_page.address_type')"></th>
+                                <th x-text="$t('status_page.ip_address')"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td x-text="$t('status_page.ppp_address')"></td>
+                                <td x-text="ips.ppp"></td>
+                            </tr>
+                            <tr x-show="ips.showGw">
+                                <td x-text="$t('status_page.gw_address')"></td>
+                                <td x-text="ips.gw"></td>
+                            </tr>
+                            <tr>
+                                <td x-text="$t('status_page.lan_address')"></td>
+                                <td x-text="ips.lan"></td>
+                            </tr>
+                            <tr x-show="ips.showDns1">
+                                <td x-text="$t('status_page.dns1_address')"></td>
+                                <td x-text="ips.dns1"></td>
+                            </tr>
+                            <tr x-show="ips.showDns2">
+                                <td x-text="$t('status_page.dns2_address')"></td>
+                                <td x-text="ips.dns2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+            </div>
+            <div x-data="" class="mnbox-main-col-help">
+                <article>
+                    <h6 x-text="$t('status_page.help_interfaces')"></h6>
+                    <hr>
+                    <p x-html="$t('status_page.help_interfaces_text')"></p>
+                    <p>
+                        <b x-text="$t('status_page.help_interfaces_states')"></b>
+                        <ul>
+                            <li x-html="$t('status_page.help_interfaces_active')"></li>
+                            <li x-html="$t('status_page.help_interfaces_notconfigured')"></li>
+                            <li x-html="$t('status_page.help_interfaces_connecting')"></li>
+                            <li x-html="$t('status_page.help_interfaces_inactive')"></li>
+                        </ul>
+                    </p>
+                </article>
+                <article>
+                    <h6 x-text="$t('status_page.help_services')"></h6>
+                    <hr>
+                    <p x-html="$t('status_page.help_services_text')"></p>
+                </article>
+                <article>
+                    <h6 x-text="$t('status_page.help_addresses')"></h6>
+                    <hr>
+                    <p x-html="$t('status_page.help_addresses_text')">
+                        
+                    </p>
+                </article>
+            </div>
+        </main>
+        <footer x-data="" x-text="$t('basic.footer_text')"></footer>
+    </main>
+</body>
+</html>

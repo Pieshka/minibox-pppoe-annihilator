@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/pico.orange.min.css">
+    <link rel="stylesheet" href="css/minibox.css">
+    <link rel="stylesheet" href="css/bootstrap.icons.css">
+    
+    <script defer src="js/minibox-tools.js"></script>
+    <script defer src="js/minibox-i18n.js"></script>
+    <script defer src="js/minibox.js"></script>
+    <script defer src="js/alpine.mask.min.js"></script>
+    <script defer src="js/alpine.i18n.min.js"></script>
+    <script defer src="js/alpine.min.js"></script>
+    
+    <title x-data="" x-text="$t('basic.appliance_full_name')"></title>
+</head>
+<body>
+    <dialog x-data="mnbox_getAuthService()" x-init="init()" x-ref="dialog">
+        <article>
+            <h2 x-text="$t('login_dialog.title')"></h2>
+            <p x-text="$t('login_dialog.provide_password')"></p>
+            <p x-text="errorMsg" class="mnbox-color-fail"></p>
+            <fieldset>
+                <label>
+                    <input x-model="password" :placeholder="$t('login_dialog.password')" type="password" name="password">
+                </label>
+            </fieldset>
+            <footer>
+                <button x-text="$t('login_dialog.login_button')" @click.prevent="doLogin()"></button>
+            </footer>
+        </article>
+    </dialog>
+    <main class="container mnbox-container">
+        <header>
+            <h1 x-data="" x-text="$t('basic.appliance_full_name')"></h1>
+        </header>
+        <aside x-data="" class="mnbox-menu">
+                <a href="index.html" :data-tooltip="$t('menu_bar.status_tooltip')"><article><i class="bi bi-motherboard"></i> <span x-text="$t('menu_bar.status')"></span></article></a>
+                <a href="wan.html" :data-tooltip="$t('menu_bar.wan_tooltip')"><article><i class="bi bi-globe2"></i> <span x-text="$t('menu_bar.wan')"></span></article></a>
+                <a href="lan.html" :data-tooltip="$t('menu_bar.lan_tooltip')"><article><i class="bi bi-ethernet"></i> <span x-text="$t('menu_bar.lan')"></span></article></a>
+                <a href="security.html" :data-tooltip="$t('menu_bar.security_tooltip')"><article><i class="bi bi-lock"></i> <span x-text="$t('menu_bar.security')"></span></article></a>
+                <a href="device.html" :data-tooltip="$t('menu_bar.device_tooltip')"><article><i class="bi bi-plug"></i> <span x-text="$t('menu_bar.device')"></span></article></a>
+                <a href="help.html" :data-tooltip="$t('menu_bar.help_tooltip')" class="secondary"><article><i class="bi bi-info-circle"></i> <span x-text="$t('menu_bar.help')"></span></article></a>
+                <a href="" :data-tooltip="$t('menu_bar.logout_tooltip')" @click.prevent="mnbox_authService.logout()" class="contrast"><article><i class="bi bi-box-arrow-left"></i> <span x-text="$t('menu_bar.logout')"></span></article></a>
+        </aside>
+        <main class="mnbox-main">
+            <div class="mnbox-main-header">
+                <h3 x-data="" x-text="$t('help_page.title')"></h3>
+            </div>
+            <article x-data="">
+                <h5 x-text="$t('help_page.about_system')"></h5>
+                <hr>
+                <p><code x-text="$t('help_page.warning_system')" class="mnbox-color-fail"></code></p>
+                <p x-html="$t('help_page.about_paragraph1')"></p>
+                <p x-html="$t('help_page.about_paragraph2')"></p>
+                <p x-html="$t('help_page.about_paragraph3')"></p>
+            </article>
+            <article x-data="">
+                <h5 x-text="$t('help_page.how_works')"></h5>
+                <hr>
+                <p x-text="$t('help_page.how_works_paragraph1')"></p>
+                <p x-text="$t('help_page.how_works_paragraph1')"></p>
+                <p x-text="$t('help_page.how_works_paragraph1')"></p>
+                <p x-text="$t('help_page.how_works_paragraph1')"></p>
+                <p x-text="$t('help_page.how_works_paragraph1')"></p>
+            </article>
+            <article x-data="">
+                <h5 x-text="$t('help_page.licensing')"></h5>
+                <hr>
+                <p x-text="$t('help_page.licensing_paragraph')"></p>
+                <p>
+                    <span x-text="$t('help_page.licensing_external')"></span>
+                    <ul>
+                        <li>Busybox - GPLv2 - <a href="https://busybox.net/">https://busybox.net/</a></li>
+                        <li>linux - GPL-2.0 WITH linux-sysall-note - <a href="https://www.kernel.org/">https://www.kernel.org/</a></li>
+                        <li>musl - MIT License - <a href="http://musl.libc.org">http://musl.libc.org</a></li>
+                        <li>pppd - BSD-style / GPLv2+ - <a href="https://ppp.samba.org/">https://ppp.samba.org/</a></li>
+                        <li>Limine Bootloader - BSD-2-Clause - <a href="https://github.com/limine-bootloader/limine">https://github.com/limine-bootloader/limine</a></li>
+                        <li>nftables - GPLv2+ - <a href="https://www.netfilter.org/projects/nftables">https://www.netfilter.org/projects/nftables</a></li>
+                        <li>libmnl - LGPLv2.1+ - <a href="https://netfilter.org/projects/libmnl">https://netfilter.org/projects/libmnl</a></li>
+                        <li>libnftnl - GPLv2+ - <a href="https://netfilter.org/projects/libnftnl/">https://netfilter.org/projects/libnftnl/</a></li>
+                        <li>alpine.js - MIT License - <a href="https://alpinejs.dev">https://alpinejs.dev</a></li>
+                        <li>alpinejs-i18n - MIT License - <a href="https://github.com/rehhouari/alpinejs-i18n">https://github.com/rehhouari/alpinejs-i18n</a></li>
+                        <li>picocss - MIT License - <a href="https://picocss.com/">https://picocss.com/</a></li>
+                        <li>Bootstrap Icons - MIT License - <a href="https://icons.getbootstrap.com/">https://icons.getbootstrap.com/</a></li>
+                        <li x-text="$t('help_page.licensing_external_others')"></li>
+                    </ul>
+                </p>
+            </article>
+        </main>
+        <footer x-data="" x-text="$t('basic.footer_text')"></footer>
+    </main>
+</body>
+</html>

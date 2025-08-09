@@ -1,0 +1,7 @@
+config BR2_PACKAGE_WEBAPI
+	bool "webapi"
+	help
+		A CGI application providing a web API for 
+		configuring the Minibox PPPoE Annihilator. 
+		If there is no need to operate the device 
+		via the web panel, the API can be disabled.

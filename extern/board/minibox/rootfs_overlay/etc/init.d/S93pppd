@@ -1,0 +1,96 @@
+#!/bin/sh
+
+# Custom pppd init file for Minibox PPPoE Annihilator
+DAEMON="pppd"
+
+EXEC="/usr/sbin/$DAEMON"
+PIDFILE="/var/run/pppd.pid"
+
+start() {
+    printf '[MNBOX] Starting %s: ' "$DAEMON"
+
+    ## Minibox DHCP configuration
+    # Read Minibox configuration
+    . /etc/minibox.static
+    . /etc/minibox.cfg
+
+    # Check if we are good to run
+    if [ -z "$PPPOE_USER" ] || [ -z "$PPPOE_PASS" ]; then
+        echo "PPPOE NOT CONFIGURED"
+        return 2
+    fi
+
+    # Get WAN interface name
+    WAN_IF="$PPPOE_IF"
+    if [ "$USE_VLAN" -eq 1 ]; then
+        WAN_IF="$WAN_IF.$VLAN_ID"
+    fi
+
+    # Check if WAN interface exists
+    if [ ! -d "/sys/class/net/$WAN_IF/" ]; then
+        echo "FAIL (interface $WAN_IF is nonexistent)"
+        return 3
+    fi
+
+    # Create pap and chap files
+    echo "$PPPOE_USER * $PPPOE_PASS *" > /etc/ppp/pap-secrets
+    echo "$PPPOE_USER * $PPPOE_PASS *" > /etc/ppp/chap-secrets
+    /usr/bin/chmod 600 /etc/ppp/*-secrets
+
+    # Build argument string
+    PPPD_ARGS="nic-$WAN_IF mtu $PPPOE_MTU mru $PPPOE_MTU user $PPPOE_USER"
+    if [ -n "$PPPOE_SERVICE" ]; then
+        PPPD_ARGS="$PPPD_ARGS pppoe-service $PPPOE_SERVICE"
+    fi
+    
+    # Although pppd creates pidfile, it does after successful connection
+    # and we need to have it immedietaly
+    # shellcheck disable=SC2086 # we need the word splitting
+    start-stop-daemon -S -q -b -p "$PIDFILE" --make-pidfile -x "$EXEC" \
+        -- $PPPD_ARGS
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    
+    return $status
+}
+
+stop() {
+    printf '[MNBOX] Stopping %s: ' "$DAEMON"
+
+    # Check if already running
+    if [ ! -f "$PIDFILE" ]; then
+        echo "NOT RUNNING"
+        return 0
+    fi
+
+    # shellcheck disable=SC2086 # we need the word splitting
+    start-stop-daemon -K -q -x "$EXEC"
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    rm -f "$PIDFILE"
+
+    return $status
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac

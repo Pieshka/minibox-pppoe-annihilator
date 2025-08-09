@@ -1,0 +1,31 @@
+plugin pppoe.so         # Load pppoe plugin
+#nic-eth0               # Our WAN interface - supplied manually
+#pppoe-service test     # PPPoE Service name - supplied manually
+
+noauth                  # Do not require peer authentication
+nodefaultroute          # Do not create any default route (we'll create our own)
+noipdefault             # Use IP supplied by the peer
+hide-password           # Hide password from logs when using PAP
+noipv6                  # Disable IPv6 support
+usepeerdns              # Ask peer for 2 DNS servers
+linkname minibox        # Set minibox linkname
+
+noccp                   # Disable Compresssion Control Protocol
+nodeflate               # Disable deflate compression
+nobsdcomp               # Disable BSD compression
+nomppe                  # Disable Microsoft Point to Point Encryption
+nomp                    # Disable PPP multilink
+nopcomp                 # Disable protocol field compression
+novj                    # Disable Van Jacobson TCP/IP header compression
+
+#mtu 1492               # MTU - supplied manually
+#mru 1492               # MRU - supplied manually
+
+lcp-echo-interval 20    # Send LCP echo every 20 seconds
+lcp-echo-failure 3      # Assume peer is dead after 3 unreplied echoes
+persist                 # Do not exit after a connection is terminated
+maxfail 0               # Do not terminate after consencutive fails
+
+updetach                # Detach from the controlling terminal after establishing connection
+
+#user "test"            # Our user - supplied manually

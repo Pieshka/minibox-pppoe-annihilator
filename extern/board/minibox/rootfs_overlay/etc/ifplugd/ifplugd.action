@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Load Minibox configuration
+. /etc/minibox.static
+. /etc/minibox.cfg
+
+if [ "$1" = "$LAN_IF" ] && [ "$2" = "up" ]; then
+    # Load dynamic configuration and check if we have IP
+    if [ -f "/etc/minibox.dynamic" ]; then
+        . /etc/minibox.dynamic
+        # PPP_GW contains target gateway but only of netmask is /32
+        if [ -n "$PPP_GW" ] && [ "$LAN_MASK" = "32" ]; then
+            /usr/bin/logger -p "daemon.info" -t "[MNBOX-IFPLUGD]" "Detected link up on $LAN_IF. Resetting ARP proxy entries."
+            /usr/sbin/arp -s "$PPP_GW" -i "$LAN_IF" -D "$LAN_IF" pub
+        fi
+    fi
+fi

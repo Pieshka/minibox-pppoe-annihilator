@@ -1,0 +1,11 @@
+timeout: 5
+serial: yes
+serial_baudrate: 115200
+interface_branding: Minibox PPPoE Annihilator - ${FW_TYPE}
+
+/Boot Minibox operating system
+    protocol: linux
+    path: boot():/bzImage
+    cmdline: root=PARTUUID=@ROOT_PARTUUID@ rootfstype=ext4 ro fsck.mode=force fsck.repair=yes
+    textmode: yes
+

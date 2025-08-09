@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# Custom httpd init file for Minibox PPPoE Annihilator
+DAEMON="httpd"
+
+EXEC="/usr/sbin/$DAEMON"
+PIDFILE="/var/run/$DAEMON.pid"
+
+HTTPD_ARGS="-c /etc/httpd.conf"
+
+start() {
+    # If no httpd application or no webapi cgi
+    # assume we are disabled
+    if [ ! -f "$EXEC" ] || [ ! -f "/var/www/cgi-bin/webapi" ]; then
+        return 0
+    fi
+
+    printf '[MNBOX] Starting %s: ' "$DAEMON"
+
+    # The best part here is that we don't need
+    # to read any configuration
+
+    # shellcheck disable=SC2086 # we need the word splitting
+    start-stop-daemon -S -q -p "$PIDFILE" --make-pidfile -x "$EXEC" \
+        -- $HTTPD_ARGS
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+
+    return $status
+}
+
+stop() {
+    # If no httpd application or no webapi cgi
+    # assume we are disabled
+    if [ ! -f "$EXEC" ] || [ ! -f "/var/www/cgi-bin/webapi" ]; then
+        return 0
+    fi
+
+    printf '[MNBOX] Stopping %s: ' "$DAEMON"
+
+    # Check if already running
+    if [ ! -f "$PIDFILE" ]; then
+        echo "NOT RUNNING"
+        return 0
+    fi
+
+    start-stop-daemon -x "$EXEC" -q -K 
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    rm -f "$PIDFILE"
+
+    return $status
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac

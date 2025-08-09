@@ -1,0 +1,199 @@
+#!/bin/sh
+
+# Minibox initialization and network configuration
+DAEMON="Minibox"
+
+start() {
+    printf '[MNBOX] Starting %s: ' "$DAEMON"
+    status=0
+
+    # Overwrite new configuration if we have one
+    # Save the old one to be save
+    if [ -f "/etc/minibox.cfg.new" ]; then
+        /usr/bin/mv /etc/minibox.cfg /etc/minibox.cfg.old
+        /usr/bin/mv /etc/minibox.cfg.new /etc/minibox.cfg
+    fi
+
+    # Read Minibox configuration
+    . /etc/minibox.static
+    . /etc/minibox.cfg
+
+    # Change WAN MAC address if configured
+    if [ -n "$PPPOE_MAC" ]; then
+        # Bring the NIC down
+        # We don't need to check if the command succeeded
+        # Either it did or the NIC was already down
+        /usr/sbin/ip link set "$PPPOE_IF" down
+        if ! /usr/sbin/ip link set dev "$PPPOE_IF" address "$PPPOE_MAC"; then
+            echo "FAIL (cannot set MAC address of $PPPOE_IF)"
+            status=1
+        fi
+    fi
+
+    # Change WAN MTU for the PPPoE client
+    ETH_MTU=$((PPPOE_MTU + 8))
+    if ! /usr/sbin/ip link set dev "$PPPOE_IF" mtu "$ETH_MTU"; then
+        echo "FAIL (cannot set MTU of $PPPOE_IF)"
+        status=1
+    fi
+
+    # Setup Ethernet links
+    if ! /usr/sbin/ip link set "$PPPOE_IF" up; then
+        echo "FAIL (cannot bring up $PPPOE_IF)"
+        status=1
+    fi
+    
+    if ! /usr/sbin/ip link set "$LAN_IF" up; then
+        echo "FAIL (cannot bring up $LAN_IF)"
+        status=1
+    fi
+
+    # Apply sysctl.conf if something goes wrong along the line
+    # For some reason on my Buildroot build sysctl.conf is not being
+    # applied.
+    if ! /usr/sbin/sysctl -p /etc/sysctl.conf >/dev/null 2>&1; then
+        echo "FAIL (cannot apply /etc/sysctl.conf)"
+        status=1
+    fi
+
+    # Apply nftables rules (eg. TCP MSS Clamp)
+    if ! /usr/sbin/nft --file /etc/nftables.conf; then
+        echo "FAIL (cannot apply /etc/nftables.conf)"
+        status=1
+    fi
+
+    # Configure Receive Packet Steering and Flow Steering
+    echo 32768 > /proc/sys/net/core/rps_sock_flow_entries
+    for f in /sys/class/net/eth*/queues/rx-*/rps_cpus; do
+        echo f > $f
+    done
+
+    # Apply TTL Mangling if it is enabled
+    # Not necessary functionality but we want
+    # minibox to be as silent as possible
+    if [ "$MANGLE_TTL" -eq 1 ]; then
+        if ! /usr/sbin/nft --file /etc/ttl_mangle.conf; then
+            echo "FAIL (enable TTL mangling)"
+            status=1
+        fi
+    fi
+
+    # Clear /etc/minibox.dynamic file
+    # Sometimes is good to be sure
+    # We could also move it to /tmp/
+    # But I want to have empty and initialized vars
+    echo "PPP_IP=" > /etc/minibox.dynamic
+    echo "PPP_GW=" >> /etc/minibox.dynamic
+    echo "PPP_DNS=" >> /etc/minibox.dynamic
+
+    # Configure VLAN if enabled
+    PPPOE_DEV="$PPPOE_IF"
+    if [ "$USE_VLAN" = "1" ]; then
+        PPPOE_DEV="$PPPOE_IF.$VLAN_ID"
+        if ! /usr/sbin/ip link add link "$PPPOE_IF" name "$PPPOE_DEV" type vlan id "$VLAN_ID"; then
+            echo "FAIL (cannot create VLAN $PPPOE_DEV)"
+            status=1
+        fi
+        if ! /usr/sbin/ip link set "$PPPOE_DEV" up; then
+            echo "FAIL (cannot bring up VLAN $PPPOE_DEV)"
+            status=1
+        fi
+    fi
+
+    # Configure PCP QoS on VLAN if needed
+    if [ "$USE_VLAN" = "1" ] && [ "$VLAN_PCP" != "0" ]; then
+        if ! /usr/sbin/vconfig set_egress_map "$PPPOE_DEV" 0 "$VLAN_PCP" >/dev/null 2>&1; then
+            echo "FAIL (cannot set PCP onto $PPPOE_DEV)"
+            status=1
+        fi
+    fi
+
+    # Flush all interfaces
+    /usr/sbin/ip addr flush "$PPPOE_IF" >/dev/null 2>&1
+    /usr/sbin/ip addr flush "$PPPOE_DEV" >/dev/null 2>&1
+    /usr/sbin/ip addr flush "$LAN_IF" >/dev/null 2>&1
+
+    /usr/sbin/ip route flush "$PPPOE_IF" >/dev/null 2>&1
+    /usr/sbin/ip route flush "$PPPOE_DEV" >/dev/null 2>&1
+    /usr/sbin/ip route flush "$LAN_IF" >/dev/null 2>&1
+
+    # Setup LAN management IP
+    # This IP will be removed by pppd daemon on connection
+    if ! /usr/sbin/ip addr add "$DEFAULT_IP" dev "$LAN_IF"; then
+        echo "FAIL (cannot set LAN IP)"
+        status=1
+    fi
+
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+
+    return $status
+}
+
+stop() {
+    printf '[MNBOX] Stopping %s: ' "$DAEMON"
+    status=0
+
+    # Read Minibox configuration
+    . /etc/minibox.static
+    . /etc/minibox.cfg
+    
+    # Flush all interfaces
+    /usr/sbin/ip addr flush "$PPPOE_IF" >/dev/null 2>&1
+    /usr/sbin/ip addr flush "$LAN_IF" >/dev/null 2>&1
+
+    /usr/sbin/ip route flush "$PPPOE_IF" >/dev/null 2>&1
+    /usr/sbin/ip route flush "$LAN_IF" >/dev/null 2>&1
+
+    # Remove VLAN if configured
+    if [ "$USE_VLAN" = "1" ]; then
+        PPPOE_DEV="$PPPOE_IF.$VLAN_ID"
+        /usr/sbin/ip addr flush "$PPPOE_DEV" >/dev/null 2>&1
+        /usr/sbin/ip route flush "$PPPOE_DEV" >/dev/null 2>&1
+        if ! /usr/sbin/ip link set dev "$PPPOE_DEV" down; then
+            echo "FAIL (cannot bring down VLAN $PPPOE_DEV)"
+            status=1
+        fi
+        if ! /usr/sbin/ip link delete "$PPPOE_DEV"; then
+            echo "FAIL (cannot delete VLAN $PPPOE_DEV)"
+            status=1
+        fi
+    fi
+    
+    # Disable all interfaces
+    if ! /usr/sbin/ip link set "$PPPOE_IF" down; then
+        echo "FAIL (cannot bring down $PPPOE_IF)"
+        status=1
+    fi
+    
+    if ! /usr/sbin/ip link set "$LAN_IF" down; then
+        echo "FAIL (cannot bring down $LAN_IF)"
+        status=1
+    fi
+
+    if [ "$status" -eq 0 ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+
+    return $status
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac

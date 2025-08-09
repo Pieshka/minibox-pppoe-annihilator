@@ -1,0 +1,32 @@
+image boot.vfat {
+    vfat {
+        label = "BOOT"
+        file bzImage { image = "boot/bzImage" }
+        file limine-bios.sys { image = "boot/limine-bios.sys" }
+        file limine.conf { image = "boot/limine.conf" }
+        file EFI { image = "boot/EFI" }
+    }
+
+    size = @BOOT_PART_SIZE@
+}
+
+image disk.img {
+    hdimage {
+        partition-table-type = "gpt"
+    }
+
+
+    partition boot {
+        image = "boot.vfat"
+        partition-type-uuid = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+        partition-uuid = "@BOOT_PARTUUID@"
+        bootable = true
+        size = @BOOT_PART_SIZE@
+    }
+
+    partition rootfs {
+        image = "rootfs.ext4"
+        partition-type-uuid = "0fc63daf-8483-4772-8e79-3d69d8477de4"
+        partition-uuid = "@ROOT_PARTUUID@"
+    }
+}

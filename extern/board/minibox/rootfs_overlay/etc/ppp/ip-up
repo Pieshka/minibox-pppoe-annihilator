@@ -1,0 +1,84 @@
+#!/bin/sh
+
+#
+# Configure LAN interfaces
+#
+
+MINIBOX_DYNAMIC="/etc/minibox.dynamic"
+
+# Read minibox configuration
+. /etc/minibox.cfg
+. /etc/minibox.static
+
+# Configure ppp interface
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Configuring ppp interface... "
+if ! /usr/sbin/ip addr flush dev "$IFNAME"; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot remove IP address from $IFNAME)"
+    exit 1
+fi
+if ! /usr/sbin/ip route flush dev "$IFNAME"; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot clear routing table for $IFNAME)"
+    exit 1
+fi
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+# Configure LAN interface
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Configuring LAN interface... "
+if ! /usr/sbin/ip addr flush dev "$LAN_IF"; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot remove IP address from $LAN_IF)"
+    exit 1
+fi
+case "$LAN_MASK" in
+   "32")
+        if ! /usr/sbin/ip addr add "$LAN_IP" peer "$IPLOCAL" dev "$LAN_IF"; then
+            /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot set Point-to-Point address on $LAN_IF)"
+            exit 1
+        fi
+        if ! /usr/sbin/arp -s "$IPREMOTE" -i "$LAN_IF" -D "$LAN_IF" pub; then
+            /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot create proxy arp entry for $IPREMOTE)"
+            exit 1
+        fi
+        /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+        /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Configured LAN interface with point-to-point IP: $LAN_IP"
+        ;;
+    *)
+        NEW_IP=$(/usr/sbin/get_free_ip "$IPLOCAL" "$LAN_MASK")
+        if ! /usr/sbin/ip addr add "$NEW_IP"/"$LAN_MASK" dev "$LAN_IF"; then
+            /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot set address on $LAN_IF)"
+            exit 1
+        fi
+        /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+        /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Configured LAN interface with IP: $NEW_IP"
+        ;;
+esac
+
+# Add default route via ppp
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Configuring default routes... "
+if ! /usr/sbin/ip route add default dev "$IFNAME"; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot set default gateway via $IFNAME)"
+    exit 1
+fi
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+# Create minibox dynamic file 
+echo "PPP_IP=$IPLOCAL" > "$MINIBOX_DYNAMIC"
+if [ -n "$NEW_IP" ]; then
+    echo "PPP_GW=$NEW_IP" >> "$MINIBOX_DYNAMIC"
+else
+    echo "PPP_GW=$IPREMOTE" >> "$MINIBOX_DYNAMIC"
+fi
+if [ -n "$DNS2" ]; then
+    echo "PPP_DNS=$DNS1 $DNS2" >> "$MINIBOX_DYNAMIC"
+else
+    echo "PPP_DNS=$DNS1" >> "$MINIBOX_DYNAMIC"
+fi
+
+# Restart uDHCPd Server
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Restarting uDHCPd Server... "
+if ! /etc/init.d/S95udhcpd restart; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot restart uDHCPd Server)"
+    exit 1
+fi
+/usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+exit 0

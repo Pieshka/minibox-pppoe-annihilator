@@ -1,0 +1,4 @@
+# This file should get overwritten by the buildroot post-build script
+PPPOE_IF="eth0"
+LAN_IF="eth1"
+DEFAULT_IP="192.168.77.1/24"

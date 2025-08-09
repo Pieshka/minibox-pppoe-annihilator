@@ -1,0 +1,4 @@
+# Minibox set LAN interface for ifplugd
+. /etc/minibox.static
+DEFAULT_IFACE="$LAN_IF"
+NAME_IFACE="$LAN_IF"
