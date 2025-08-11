@@ -63,9 +63,12 @@ start() {
     fi
 
     # Configure Receive Packet Steering and Flow Steering
-    echo 32768 > /proc/sys/net/core/rps_sock_flow_entries
+    echo 32768 > /proc/sys/net/core/rps_sock_flow_entries 2>/dev/null
     for f in /sys/class/net/eth*/queues/rx-*/rps_cpus; do
-        echo f > $f
+        echo f > "$f" 2>/dev/null
+    done
+    for f in /sys/class/net/eth*/queues/tx-*/xps_cpus; do
+        echo f > "$f" 2>/dev/null
     done
 
     # Apply TTL Mangling if it is enabled
