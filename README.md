@@ -32,6 +32,10 @@ Unfortunately, because Minibox operates in the third layer of the OSI model, it 
 
 The Minibox can be configured classically from the shell (there is no SSH, so you either need to use a keyboard and monitor or set the output to a serial port) or via the web interface.
 
+The built-in multicast DNS server ([minimdnsd](https://github.com/cnlohr/minimdnsd)) automatically broadcasts the Minibox IP address under the `minibox.local` domain, so even if the IP address on the LAN side changes, connectivity to the web interface is maintained.
+
+`NOTE! When the Minibox is not configured, the DHCP server does NOT work. Therefore, after configuration, you must change the addressing from static to dynamic.`
+
 ### Default login details (for the shell and WebUI)
 
 `root/minibox`

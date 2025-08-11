@@ -1,4 +1,5 @@
 source "$BR2_EXTERNAL_MINIBOX_PATH/package/webapi/Config.in"
+source "$BR2_EXTERNAL_MINIBOX_PATH/package/minimdnsd/Config.in"
 source "$BR2_EXTERNAL_MINIBOX_PATH/package/limine/Config.in.host"
 
 config BR2_MINIBOX_DEFAULT_WAN_INTERFACE

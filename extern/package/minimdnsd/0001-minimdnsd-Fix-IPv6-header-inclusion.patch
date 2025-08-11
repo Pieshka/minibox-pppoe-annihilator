@@ -1,0 +1,32 @@
+diff --git a/minimdnsd.c b/minimdnsd.c
+index 6f9f2e4..6e2af93 100644
+--- a/minimdnsd.c
++++ b/minimdnsd.c
+@@ -37,6 +37,8 @@
+ //  * Also, it's shim "dns server" that bridges DNS to MDNS.
+ //
+ 
++//#define DISABLE_IPV6
++
+ #include <sys/stat.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
+@@ -51,7 +53,9 @@
+ #include <errno.h>
+ #include <poll.h>
+ #include <sys/socket.h>
++#ifndef DISABLE_IPV6
+ #include <linux/in6.h>
++#endif
+ #include <limits.h>
+ #include <fcntl.h>
+ 
+@@ -65,8 +69,6 @@
+ // For DNS -> MDNS forwarding we use fork/wait
+ #include <sys/wait.h>
+ 
+-//#define DISABLE_IPV6
+-
+ #define MAX_MDNS_PATH (HOST_NAME_MAX+8)
+ #define MDNS_PORT 5353
+ #define RESOLVER_PORT 53

@@ -1,0 +1,7 @@
+config BR2_PACKAGE_MINIMDNSD
+    bool "minimdnsd"
+    help
+        Extremely simple MDNS server for Linux. 
+        Much smaller and lighter weight than Avahi.
+
+        Project: https://github.com/cnlohr/minimdnsd

@@ -314,11 +314,11 @@ window.mnbox_basePage = {
             this.saveStatusClass = 'mnbox-color-good';
             await window.mnbox_apiService.restart();
 
-            /* Wait for Minibox to come back online on specified IP if mask /32.
+            /* Wait for Minibox to come back online on specified IP if mask /32 (and not .local domain).
                If not - well hope we got this right
             */
             let targetIp = window.location.hostname;
-            if(configData.lan_mask === 32 && targetIp != configData.lan_ip)
+            if(configData.lan_mask === 32 && targetIp != configData.lan_ip && !targetIp.includes(".local"))
                 targetIp = configData.lan_ip;
 
             const isAlive = await window.mnbox_apiService.waitForReboot(120, 2, targetIp);
