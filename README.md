@@ -84,6 +84,10 @@ Configuration via a browser is the recommended method, as WebAPI and internal sc
 
 Minibox does not have any fancy installers, as it is such a simple system that all you need to do is burn it with Rufus/dd/balenaEtcher to a disk/USB stick/SD card and boot it. The images are prepared to work with both BIOS and UEFI (although there is no support for Secure Boot).
 
+```
+You will probably want to set the correct LAN and WAN interfaces in the /etc/minibox.static file if your target machine has multiple ports and they are not detected in sequence. It's not so bad if they are all from the same network card – then you can simply find the LAN and WAN by trial and error. The worst case scenario is when you have different network cards – you will probably want to set the newest one as WAN.
+```
+
 ## Building your own image
 
 The repository has been equipped with useful scripts that support the process of building your own image. The whole thing is based on the excellent Buildroot system, which also facilitates potential modifications.
