@@ -34,8 +34,6 @@ The Minibox can be configured classically from the shell (there is no SSH, so yo
 
 The built-in multicast DNS server ([minimdnsd](https://github.com/cnlohr/minimdnsd)) automatically broadcasts the Minibox IP address under the `minibox.local` domain, so even if the IP address on the LAN side changes, connectivity to the web interface is maintained.
 
-`NOTE! When the Minibox is not configured, the DHCP server does NOT work. Therefore, after configuration, you must change the addressing from static to dynamic.`
-
 ### Default login details (for the shell and WebUI)
 
 `root/minibox`
@@ -74,7 +72,7 @@ By default, the Limine bootloader is visible both on the monitor and on the seri
 
 ### Configuration using a web browser
 
-The Minibox has a built-in HTTP server through which it can be configured. The default IP address on the LAN side is `192.168.77.1/24` (the DHCP server is **NOT** working). However, it is worth bearing in mind that when we correctly configure the PPPoE client and it establishes a session, the IP address of the LAN interface will change. The simplest case is with a /32 mask, because then we can set any IP address (without a mask). For other modes, the address is selected based on the one assigned by the operator (usually the first available one).
+The Minibox has a built-in HTTP server through which it can be configured. The default IP address on the LAN side is `192.168.77.1/24`. However, it is worth bearing in mind that when we correctly configure the PPPoE client and it establishes a session, the IP address of the LAN interface will change. The simplest case is with a /32 mask, because then we can set any IP address (without a mask). For other modes, the address is selected based on the one assigned by the operator (usually the first available one).
 
 Configuration via a browser is the recommended method, as WebAPI and internal scripts ensure that no damage occurs. The interface shown in the image below is very clear and equipped with additional help features.
 
@@ -123,6 +121,7 @@ Components of the final image:
 *   nftables - GPLv2+ - [https://www.netfilter.org/projects/nftables](https://www.netfilter.org/projects/nftables)
 *   libmnl - LGPLv2.1+ - [https://netfilter.org/projects/libmnl](https://netfilter.org/projects/libmnl)
 *   libnftnl - GPLv2+ - [https://netfilter.org/projects/libnftnl/](https://netfilter.org/projects/libnftnl/)
+*   minimdnsd - MIT License - [https://github.com/cnlohr/minimdnsd/](https://github.com/cnlohr/minimdnsd/)
 *   alpine.js - MIT License - [https://alpinejs.dev](https://alpinejs.dev)
 *   alpinejs-i18n - MIT License - [https://github.com/rehhouari/alpinejs-i18n](https://github.com/rehhouari/alpinejs-i18n)
 *   picocss - MIT License - [https://picocss.com/](https://picocss.com/)
