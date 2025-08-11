@@ -21,7 +21,7 @@ novj                    # Disable Van Jacobson TCP/IP header compression
 #mtu 1492               # MTU - supplied manually
 #mru 1492               # MRU - supplied manually
 
-lcp-echo-interval 20    # Send LCP echo every 20 seconds
+lcp-echo-interval 5     # Send LCP echo every 20 seconds
 lcp-echo-failure 3      # Assume peer is dead after 3 unreplied echoes
 persist                 # Do not exit after a connection is terminated
 maxfail 0               # Do not terminate after consencutive fails
