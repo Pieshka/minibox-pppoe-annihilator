@@ -17,10 +17,13 @@
 /etc/network/if-pre-up.d		d	755	0	0	-	-	-	-	-
 /etc/network/if-down.d			d	755	0	0	-	-	-	-	-
 /etc/network/if-post-down.d		d	755	0	0	-	-	-	-	-
+/etc/acpi/PWRF/00000080         f   755 0   0   -   -   -   -   -
 /etc/default/ifplugd			f	755	0	0	-	-	-	-	-
 /etc/ifplugd/ifplugd.action		f	755	0	0	-	-	-	-	-
+/etc/init.d/S02acpid            f   755 0   0   -   -   -   -   -
+/etc/init.d/S41ifplugd          f   755 0   0   -   -   -   -   -
 /etc/init.d/S90minibox			f	755	0	0	-	-	-	-	-
-/etc/init.d/S91httpd                    f       755     0       0       -       -       -       -       -
+/etc/init.d/S91httpd            f       755     0       0       -       -       -       -       -
 /etc/init.d/S93pppd			f	755	0	0	-	-	-	-	-
 /etc/init.d/S95udhcpd			f	755	0	0	-	-	-	-	-
 /etc/ppp/ip-down			f	755	0	0	-	-	-	-	-
