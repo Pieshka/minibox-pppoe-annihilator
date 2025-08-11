@@ -6,6 +6,6 @@ interface_branding: Minibox PPPoE Annihilator - ${FW_TYPE}
 /Boot Minibox operating system
     protocol: linux
     path: boot():/bzImage
-    cmdline: root=PARTUUID=@ROOT_PARTUUID@ rootfstype=ext4 ro fsck.mode=force fsck.repair=yes
+    cmdline: root=PARTUUID=@ROOT_PARTUUID@ rootfstype=ext4 rootwait ro fsck.mode=force fsck.repair=yes
     textmode: yes
 
