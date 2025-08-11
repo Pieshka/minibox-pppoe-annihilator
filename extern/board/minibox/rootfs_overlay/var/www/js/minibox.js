@@ -473,15 +473,18 @@ window.mnbox_statusPage = function() {
                 [this.httpd.status, this.httpd.statusClass] = this.getSimpleStatusNameAndClass(services.data.httpd);
 
                 /* Load IP information */
+                /* IP should be shown only when PPPoE is up */
+                /* Otherwise we are on the default IP which is unknown for the API */
                 this.ips.ppp = ipinfo.data.ppp_ip;
-                if(config.data.lan_mask === 32)
-                {
-                    this.ips.gw = ipinfo.data.ppp_gw;
-                    this.ips.lan = config.data.lan_ip;
-                    this.ips.showGw = true;
-                }
-                else
-                    this.ips.lan = ipinfo.data.ppp_gw;
+                if(interfaces.data.ppp0 === "up" || interfaces.data.ppp0 === "unknown")
+                    if(config.data.lan_mask === 32)
+                    {
+                        this.ips.gw = ipinfo.data.ppp_gw;
+                        this.ips.lan = config.data.lan_ip;
+                        this.ips.showGw = true;
+                    }
+                    else
+                        this.ips.lan = ipinfo.data.ppp_gw;
 
                 const dnsList = ipinfo.data.ppp_dns?.trim().split(" ").filter(Boolean) || [];
 				if (dnsList.length > 0) 
