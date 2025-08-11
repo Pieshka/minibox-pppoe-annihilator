@@ -76,6 +76,8 @@ The Minibox has a built-in HTTP server through which it can be configured. The d
 
 Configuration via a browser is the recommended method, as WebAPI and internal scripts ensure that no damage occurs. The interface shown in the image below is very clear and equipped with additional help features.
 
+![The image shows a very nice web interface.](.github/ui.png)
+
 ### Available images:
 - `<date>-minibox-generic-x86_64.img.xz` - contains most gigabit network card drivers, disk controllers and mass storage devices. It is intended for general use.
 - `<date>-minibox-qemu-x86_64.img.xz` - contains only drivers used in the QEMU environment. A smaller version intended for virtualisation.
