@@ -35,6 +35,7 @@ The Minibox can be configured classically from the shell (there is no SSH, so yo
 ### Default login details (for the shell and WebUI)
 
 `root/minibox`
+
 The user database is shared between the shell and the web panel, so changing your password in one place will also change it in the other.
 
 ### Configuration using the shell
@@ -74,8 +75,8 @@ The Minibox has a built-in HTTP server through which it can be configured. The d
 Configuration via a browser is the recommended method, as WebAPI and internal scripts ensure that no damage occurs. The interface shown in the image below is very clear and equipped with additional help features.
 
 ### Available images:
-- `<data>-minibox-generic-x86_64.img.xz` - contains most gigabit network card drivers, disk controllers and mass storage devices. It is intended for general use.
-- `<data>-minibox-qemu-x86_64.img.xz` - contains only drivers used in the QEMU environment. A smaller version intended for virtualisation.
+- `<date>-minibox-generic-x86_64.img.xz` - contains most gigabit network card drivers, disk controllers and mass storage devices. It is intended for general use.
+- `<date>-minibox-qemu-x86_64.img.xz` - contains only drivers used in the QEMU environment. A smaller version intended for virtualisation.
 
 ### Image installation
 
