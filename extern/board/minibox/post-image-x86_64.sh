@@ -4,7 +4,7 @@ set -eu
 # Configuration
 BOARD_DIR="$(dirname $0)"
 BOARD_NAME="$(basename ${BOARD_DIR})"
-GENIMAGE_TEMPLATE="${BOARD_DIR}/genimage.cfg.in"
+GENIMAGE_TEMPLATE="${BOARD_DIR}/genimage-x86_64.cfg.in"
 GENIMAGE_CFG="${BINARIES_DIR}/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 ROOTPATH_TMP="$(mktemp -d)"
