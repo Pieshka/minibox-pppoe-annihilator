@@ -1,0 +1,52 @@
+From 11aa3db43ec2a3def5fcd1454a61c13bb769cf3e Mon Sep 17 00:00:00 2001
+From: unknown <unknown@user>
+Date: Sat, 23 Aug 2025 11:06:45 +0200
+Subject: [PATCH 4/5] phy: rockchip naneng combphy: add sgmii mac sel
+
+---
+ drivers/phy/rockchip/phy-rockchip-naneng-combphy.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/phy/rockchip/phy-rockchip-naneng-combphy.c b/drivers/phy/rockchip/phy-rockchip-naneng-combphy.c
+index ce91fb1d5167..236ac3ede1d4 100644
+--- a/drivers/phy/rockchip/phy-rockchip-naneng-combphy.c
++++ b/drivers/phy/rockchip/phy-rockchip-naneng-combphy.c
+@@ -137,6 +137,7 @@ struct rockchip_combphy_grfcfg {
+ 	struct combphy_reg pipe_xpcs_phy_ready;
+ 	struct combphy_reg pipe_pcie1l0_sel;
+ 	struct combphy_reg pipe_pcie1l1_sel;
++    struct combphy_reg pipe_sgmii_mac_sel;
+ };
+ 
+ struct rockchip_combphy_cfg {
+@@ -289,6 +290,7 @@ static struct phy *rockchip_combphy_xlate(struct device *dev, const struct of_ph
+ 
+ static int rockchip_combphy_parse_dt(struct device *dev, struct rockchip_combphy_priv *priv)
+ {
++    int mac_id;
+ 	int i;
+ 
+ 	priv->num_clks = devm_clk_bulk_get_all(dev, &priv->clks);
+@@ -324,6 +326,11 @@ static int rockchip_combphy_parse_dt(struct device *dev, struct rockchip_combphy
+ 
+ 	priv->ext_refclk = device_property_present(dev, "rockchip,ext-refclk");
+ 
++    if (!device_property_read_u32(dev, "rockchip,sgmii-mac-sel", &mac_id)) {
++		rockchip_combphy_param_write(priv->pipe_grf, &priv->cfg->grfcfg->pipe_sgmii_mac_sel,
++					     (mac_id > 0) ? true : false);
++	}
++
+ 	priv->phy_rst = devm_reset_control_get_exclusive(dev, "phy");
+ 	/* fallback to old behaviour */
+ 	if (PTR_ERR(priv->phy_rst) == -ENOENT)
+@@ -737,6 +744,7 @@ static const struct rockchip_combphy_grfcfg rk3568_combphy_grfcfgs = {
+ 	/* pipe-grf */
+ 	.pipe_con0_for_sata	= { 0x0000, 15, 0, 0x00, 0x2220 },
+ 	.pipe_xpcs_phy_ready	= { 0x0040, 2, 2, 0x00, 0x01 },
++    .pipe_sgmii_mac_sel	= { 0x0040, 1, 1, 0x00, 0x01 },
+ };
+ 
+ static const struct rockchip_combphy_cfg rk3568_combphy_cfgs = {
+-- 
+2.43.0
+

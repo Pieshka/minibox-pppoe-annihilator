@@ -4,7 +4,7 @@
 # Configure LAN interfaces
 #
 
-MINIBOX_DYNAMIC="/etc/minibox.dynamic"
+MINIBOX_DYNAMIC="/var/run/minibox.dynamic"
 
 # Read minibox configuration
 . /etc/minibox.cfg
@@ -46,5 +46,10 @@ if ! /usr/sbin/ip addr add "$DEFAULT_IP" dev "$LAN_IF"; then
     exit 1
 fi
 /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+# Turn off WAN LED if we have one
+for led in /sys/class/leds/*:green:wan/brightness; do
+    [ -f "$led" ] && echo 0 > "$led"
+done
 
 exit 0

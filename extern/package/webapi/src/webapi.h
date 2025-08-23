@@ -14,7 +14,7 @@
 #endif
 #define MINIBOX_CONFIG_FILE "/etc/minibox.cfg"
 #define MINIBOX_NEW_CONFIG_FILE "/etc/minibox.cfg.new"
-#define MINIBOX_DYNAMIC_FILE "/etc/minibox.dynamic"
+#define MINIBOX_DYNAMIC_FILE "/var/run/minibox.dynamic"
 #define MINIBOX_STATIC_FILE "/etc/minibox.static"
 #define UDHCPD_PID_FILE "/var/run/udhcpd.pid"
 #define PPPD_PID_FILE "/var/run/pppd.pid"

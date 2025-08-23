@@ -1,5 +1,9 @@
 #!/bin/sh
 
+#
+# Global procedures
+#
+
 # Load variables
 BR2_MINIBOX_VERSION=$(grep -oP '^BR2_MINIBOX_VERSION="\K[^"]+' "$BR2_CONFIG" || echo "unknown")
 BR2_MINIBOX_DEFAULT_WAN_INTERFACE=$(grep -oP '^BR2_MINIBOX_DEFAULT_WAN_INTERFACE="\K[^"]+' "$BR2_CONFIG" || echo "eth0")
@@ -14,3 +18,4 @@ echo "minibox-${BR2_MINIBOX_VERSION}" > "${TARGET_DIR}/minibox"
 echo "PPPOE_IF=\"${BR2_MINIBOX_DEFAULT_WAN_INTERFACE}\"" > "${TARGET_DIR}/etc/minibox.static"
 echo "LAN_IF=\"${BR2_MINIBOX_DEFAULT_LAN_INTERFACE}\"" >> "${TARGET_DIR}/etc/minibox.static"
 echo "DEFAULT_IP=\"${BR2_MINIBOX_DEFAULT_IP}/${BR2_MINIBOX_DEFAULT_MASK}\"" >> "${TARGET_DIR}/etc/minibox.static"
+

@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# CPU frequency set for embedded devices
+DAEMON="cpufreq"
+
+start() {
+    # Check if we have device model before we start
+    if [ ! -f "/proc/device-tree/model" ]; then
+        exit 1
+    fi
+
+    printf 'Starting %s: ' "$DAEMON"
+    status=0
+
+    # Load board name
+    BOARD=$(cat /proc/device-tree/model)
+
+    # Apply settings for FriendlyElec NanoPi R2S
+    if [ "$BOARD" = "FriendlyElec NanoPi R2S" ]; then
+        echo "schedutil" > "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor"
+        echo 816000 > "/sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq"
+        echo 1512000 > "/sys/devices/system/cpu/cpufreq/policy0/scaling_max_freq"
+    fi
+
+    echo "OK"
+    return 0
+}
+
+stop() {
+    return 0
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac

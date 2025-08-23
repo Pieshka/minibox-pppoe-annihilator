@@ -1,0 +1,29 @@
+From 6e8803cefa5ae450aaa16f5a63c274ba6e48e3b2 Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Fri, 22 Aug 2025 19:49:03 +0200
+Subject: [PATCH 01/12] rockchip: rk3328: add compatible to NanoPi R2S ethernet
+ PHY
+
+This adds the compatible property to the NanoPi R2S ethernet PHY node.
+Otherwise, the PHY might not be probed, as the PHY ID reads all 0xff
+when it is still in reset.
+---
+ arch/arm64/boot/dts/rockchip/rk3328-nanopi-r2s.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3328-nanopi-r2s.dtsi b/arch/arm64/boot/dts/rockchip/rk3328-nanopi-r2s.dtsi
+index 308e526c2861..daaf5c966981 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3328-nanopi-r2s.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3328-nanopi-r2s.dtsi
+@@ -18,6 +18,8 @@ &gmac2io {
+ 
+ 	mdio {
+ 		rtl8211e: ethernet-phy@1 {
++            compatible = "ethernet-phy-id001c.c915",
++                        "ethernet-phy-ieee802.3-c22";
+ 			reg = <1>;
+ 			pinctrl-0 = <&eth_phy_reset_pin>;
+ 			pinctrl-names = "default";
+-- 
+2.43.0
+

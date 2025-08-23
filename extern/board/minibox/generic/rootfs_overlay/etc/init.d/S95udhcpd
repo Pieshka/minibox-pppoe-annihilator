@@ -22,8 +22,8 @@ start() {
     fi
 
     # Check if we have PPP_IP and PPP_GW
-    if [ -f "/etc/minibox.dynamic" ]; then
-        . /etc/minibox.dynamic
+    if [ -f "/var/run/minibox.dynamic" ]; then
+        . /var/run/minibox.dynamic
         if [ -z "$PPP_IP" ] || [ -z "$PPP_GW" ]; then
             # If not, we create stub config using default IP
             LAN_MASK=$(echo "$DEFAULT_IP" | cut -d'/' -f2)
@@ -91,6 +91,7 @@ stop() {
 
 restart() {
     stop
+    sleep 1
     start
 }
 

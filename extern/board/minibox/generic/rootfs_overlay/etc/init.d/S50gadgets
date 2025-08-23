@@ -1,0 +1,124 @@
+#!/bin/sh
+
+# USB Gadget initialization
+DAEMON="USB Serial Gadget"
+GADGET_PATH="/sys/kernel/config/usb_gadget/g1"
+PID_FILE="/var/run/usb-serial-getty.pid"
+
+# You need to change this if you want
+# to distribute Minibox as an appliance
+VENDOR_ID="0x0525" # NetChip
+PRODUCT_ID="0xa4a6" # Linux-USB Serial Gadget
+SERIAL_NUMBER="73616B757961"
+MANUFACTURER="Minibox PPPoE Annihilator"
+PRODUCT="USB Serial Console"
+
+# Helper function
+start_getty() {
+    while true; do
+        if [ -e /dev/ttyGS0 ]; then
+            /sbin/getty -L ttyGS0 115200 vt100
+        else
+            sleep 1
+        fi
+    done
+}
+
+start() {
+    printf 'Starting %s: ' "$DAEMON"
+    status=0
+
+    # Check if we have an UDC available
+    if [ -z "$(ls /sys/class/udc)" ]; then
+        echo "NO UDC AVAILABLE"
+        exit 1
+    fi
+
+    # Mount ConfigFS
+    if ! /usr/bin/mount -t configfs none /sys/kernel/config; then
+        echo "CONFIGFS UNAVAILABLE"
+        exit 1
+    fi
+
+    # Create gadget directory
+    mkdir -p "$GADGET_PATH"
+    status=$?
+
+    # Configure VID and PID
+    echo "$VENDOR_ID" > "$GADGET_PATH/idVendor"
+    echo "$PRODUCT_ID" > "$GADGET_PATH/idProduct"
+
+    # Configure product info
+    mkdir -p "$GADGET_PATH/strings/0x409"
+    echo "$SERIAL_NUMBER" > "$GADGET_PATH/strings/0x409/serialnumber"
+    echo "$MANUFACTURER" > "$GADGET_PATH/strings/0x409/manufacturer"
+    echo "$PRODUCT" > "$GADGET_PATH/strings/0x409/product"
+
+    # Configure gadget function
+    mkdir -p "$GADGET_PATH/configs/c.1/strings/0x409"
+    echo "Config 1: ACM serial" > "$GADGET_PATH/configs/c.1/strings/0x409/configuration"
+    echo 120 > "$GADGET_PATH/configs/c.1/MaxPower"
+
+    # Bind function to gadget
+    mkdir -p "$GADGET_PATH/functions/acm.usb0"
+    ln -s "$GADGET_PATH/functions/acm.usb0" "$GADGET_PATH/configs/c.1/"
+
+    # Bind gadget to UDC
+    echo $(ls /sys/class/udc) > "$GADGET_PATH/UDC"
+    status=$(( $? == 1 && status == 1 ? 1 : 0 ))
+
+    if [ "$status" -eq 0 ]; then
+        # Start getty on /dev/ttyGS0
+        start_getty &
+        GETTY_PID=$!
+        echo $GETTY_PID > "$PID_FILE"
+        echo "OK"
+    else
+        echo "FAIL"
+    fi
+    return $status
+}
+
+stop() {
+    printf '[MNBOX] Stopping %s: ' "$DAEMON"
+
+    PID_FILE="/var/run/usb-serial-getty.pid"
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+        kill "$PID" 2>/dev/null
+        rm -f "$PID_FILE"
+    fi
+
+    if [ -f "$GADGET_PATH/UDC" ]; then
+        echo "" > "$GADGET_PATH/UDC"
+    fi
+
+    if [ -L "$GADGET_PATH/configs/c.1/acm.usb0" ]; then
+        rm -f "$GADGET_PATH/configs/c.1/acm.usb0"
+    fi
+
+    [ -d "$GADGET_PATH/functions/acm.usb0" ] && rmdir "$GADGET_PATH/functions/acm.usb0"
+    [ -d "$GADGET_PATH/configs/c.1/strings/0x409" ] && rmdir "$GADGET_PATH/configs/c.1/strings/0x409"
+    [ -d "$GADGET_PATH/configs/c.1" ] && rmdir "$GADGET_PATH/configs/c.1"
+    [ -d "$GADGET_PATH/strings/0x409" ] && rmdir "$GADGET_PATH/strings/0x409"
+
+    [ -d "$GADGET_PATH" ] && rmdir "$GADGET_PATH"
+
+    echo "OK"
+    return 0
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac

@@ -18,6 +18,28 @@ start() {
     . /etc/minibox.static
     . /etc/minibox.cfg
 
+    # Wait for WAN interface to appear
+    WAITED=0
+    while [ ! -d "/sys/class/net/$PPPOE_IF" ]; do
+        sleep 1
+        WAITED=$((WAITED+1))
+        if [ "$WAITED" -ge "30" ]; then
+            echo "TIMEOUT: $PPPOE_IF IS NOT AVAILABLE"
+            exit 1
+        fi
+    done
+
+    # Wait for LAN interface to appear
+    WAITED=0
+    while [ ! -d "/sys/class/net/$LAN_IF" ]; do
+        sleep 1
+        WAITED=$((WAITED+1))
+        if [ "$WAITED" -ge "30" ]; then
+            echo "TIMEOUT: $LAN_IF IS NOT AVAILABLE"
+            exit 1
+        fi
+    done
+
     # Change WAN MAC address if configured
     if [ -n "$PPPOE_MAC" ]; then
         # Bring the NIC down
@@ -63,12 +85,36 @@ start() {
     fi
 
     # Configure Receive Packet Steering and Flow Steering
+    # Set global flow entries for RPS
     echo 32768 > /proc/sys/net/core/rps_sock_flow_entries 2>/dev/null
+    # Define available CPU masks
+    CPU_MASKS="1 2 4 8"
+    # Helper function
+    get_cpu_mask() {
+        idx=$(( $1 % 4 ))
+        i=0
+        for mask in $CPU_MASKS; do
+            if [ "$i" -eq "$idx" ]; then
+                echo "$mask"
+                return
+            fi
+            i=$((i + 1))
+        done
+    }
+    # Configure RPS for RX
+    i=0
     for f in /sys/class/net/eth*/queues/rx-*/rps_cpus; do
-        echo f > "$f" 2>/dev/null
+        mask=$(get_cpu_mask $i)
+        echo $mask > "$f" 2>/dev/null
+        echo 32768 > "$(dirname $f)/rps_flow_cnt" 2>/dev/null
+        i=$((i + 1))
     done
+    # Configure XPS for TX
+    i=0
     for f in /sys/class/net/eth*/queues/tx-*/xps_cpus; do
-        echo f > "$f" 2>/dev/null
+        mask=$(get_cpu_mask $i)
+        echo $mask > "$f" 2>/dev/null
+        i=$((i + 1))
     done
 
     # Apply TTL Mangling if it is enabled
@@ -81,13 +127,13 @@ start() {
         fi
     fi
 
-    # Clear /etc/minibox.dynamic file
+    # Clear /var/run/minibox.dynamic file
     # Sometimes is good to be sure
     # We could also move it to /tmp/
     # But I want to have empty and initialized vars
-    echo "PPP_IP=" > /etc/minibox.dynamic
-    echo "PPP_GW=" >> /etc/minibox.dynamic
-    echo "PPP_DNS=" >> /etc/minibox.dynamic
+    echo "PPP_IP=" > /var/run/minibox.dynamic
+    echo "PPP_GW=" >> /var/run/minibox.dynamic
+    echo "PPP_DNS=" >> /var/run/minibox.dynamic
 
     # Configure VLAN if enabled
     PPPOE_DEV="$PPPOE_IF"

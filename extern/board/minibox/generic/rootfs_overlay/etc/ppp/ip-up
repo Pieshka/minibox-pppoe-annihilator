@@ -4,7 +4,7 @@
 # Configure LAN interfaces
 #
 
-MINIBOX_DYNAMIC="/etc/minibox.dynamic"
+MINIBOX_DYNAMIC="/var/run/minibox.dynamic"
 
 # Read minibox configuration
 . /etc/minibox.cfg
@@ -80,5 +80,10 @@ if ! /etc/init.d/S95udhcpd restart; then
     exit 1
 fi
 /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
+
+# Turn on WAN LED if we have one
+for led in /sys/class/leds/*:green:wan/brightness; do
+    [ -f "$led" ] && echo 1 > "$led"
+done
 
 exit 0

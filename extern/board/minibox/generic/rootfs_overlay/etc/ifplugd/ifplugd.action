@@ -4,10 +4,11 @@
 . /etc/minibox.static
 . /etc/minibox.cfg
 
+# Proxy ARP configuration
 if [ "$1" = "$LAN_IF" ] && [ "$2" = "up" ]; then
     # Load dynamic configuration and check if we have IP
-    if [ -f "/etc/minibox.dynamic" ]; then
-        . /etc/minibox.dynamic
+    if [ -f "/var/run/minibox.dynamic" ]; then
+        . /var/run/minibox.dynamic
         # PPP_GW contains target gateway but only if netmask is /32
         if [ -n "$PPP_GW" ] && [ "$LAN_MASK" = "32" ]; then
             /usr/bin/logger -p "daemon.info" -t "[MNBOX-IFPLUGD]" "Detected link up on $LAN_IF. Resetting ARP proxy entries."
@@ -15,3 +16,14 @@ if [ "$1" = "$LAN_IF" ] && [ "$2" = "up" ]; then
         fi
     fi
 fi
+
+# LAN LED activation
+if [ "$1" = "$LAN_IF" ]; then
+    value=0
+    [ "$2" = "up" ] && value=1
+
+    for led in /sys/class/leds/*:green:lan/brightness; do
+        [ -f "$led" ] && echo $value > "$led"
+    done
+fi
+

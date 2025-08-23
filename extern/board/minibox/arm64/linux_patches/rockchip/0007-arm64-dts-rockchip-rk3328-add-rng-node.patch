@@ -1,0 +1,34 @@
+From c0f131bf5eb25059879843c153110d8b0307dd28 Mon Sep 17 00:00:00 2001
+From: Lin Jinhan <troy.lin@rock-chips.com>
+Date: Fri, 22 Aug 2025 20:24:50 +0200
+Subject: [PATCH 07/12] arm64: dts: rockchip: rk3328: add rng node
+
+---
+ arch/arm64/boot/dts/rockchip/rk3328.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3328.dtsi b/arch/arm64/boot/dts/rockchip/rk3328.dtsi
+index 6438c969f9d7..191edb32e3f2 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3328.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3328.dtsi
+@@ -310,6 +310,17 @@ &pdmm0_sdi2_sleep
+ 		status = "disabled";
+ 	};
+ 
++    rng: rng@ff060000 {
++        compatible = "rockchip,cryptov1-rng";
++        reg = <0x0 0xff060000 0x0 0x4000>;
++
++		clocks = <&cru SCLK_CRYPTO>, <&cru HCLK_CRYPTO_SLV>;
++		clock-names = "clk_crypto", "hclk_crypto";
++		assigned-clocks = <&cru SCLK_CRYPTO>, <&cru HCLK_CRYPTO_SLV>;
++		assigned-clock-rates = <150000000>, <100000000>;
++		status = "disabled";
++	};
++
+ 	grf: syscon@ff100000 {
+ 		compatible = "rockchip,rk3328-grf", "syscon", "simple-mfd";
+ 		reg = <0x0 0xff100000 0x0 0x1000>;
+-- 
+2.43.0
+

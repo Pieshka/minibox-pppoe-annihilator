@@ -1,0 +1,27 @@
+From c95375e2cfd16084978bc88d4407bb2b08c16151 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Fri, 22 Aug 2025 20:03:05 +0200
+Subject: [PATCH 03/12] math.h: add DIV_ROUND_UP_NO_OVERFLOW
+
+Add a new DIV_ROUND_UP helper, which cannot overflow when
+big numbers are being used.
+---
+ include/linux/math.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/linux/math.h b/include/linux/math.h
+index 0198c92cbe3e..2f941bef85ea 100644
+--- a/include/linux/math.h
++++ b/include/linux/math.h
+@@ -48,6 +48,8 @@
+ 
+ #define DIV_ROUND_UP __KERNEL_DIV_ROUND_UP
+ 
++#define DIV_ROUND_UP_NO_OVERFLOW(n, d) (((n) / (d)) + !!((n) % (d)))
++
+ #define DIV_ROUND_DOWN_ULL(ll, d) \
+ 	({ unsigned long long _tmp = (ll); do_div(_tmp, d); _tmp; })
+ 
+-- 
+2.43.0
+
