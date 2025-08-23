@@ -47,6 +47,11 @@ start() {
     # Configure VID and PID
     echo "$VENDOR_ID" > "$GADGET_PATH/idVendor"
     echo "$PRODUCT_ID" > "$GADGET_PATH/idProduct"
+    echo 0x0100 > "$GADGET_PATH/bcdDevice"
+    echo 0x0200 > "$GADGET_PATH/bcdUSB"
+    echo 0x02 > "$GADGET_PATH/bDeviceClass"
+    echo 0x02 > "$GADGET_PATH/bDeviceSubClass"
+    echo 0xFF > "$GADGET_PATH/bDeviceProtocol"
 
     # Configure product info
     mkdir -p "$GADGET_PATH/strings/0x409"
