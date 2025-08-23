@@ -75,10 +75,24 @@ fi
 
 # Restart uDHCPd Server
 /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Restarting uDHCPd Server... "
-if ! /etc/init.d/S95udhcpd restart; then
-    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot restart uDHCPd Server)"
+max_tries=10
+count=0
+success=0
+while [ $count -lt $max_tries ]; do
+    if /etc/init.d/S95udhcpd restart; then
+        success=1
+        break
+    fi
+    count=$((count + 1))
+    /usr/bin/logger -p "daemon.warn" -t "[MNBOX-PPP]" "Retry $count/$max_tries failed, retrying..."
+    sleep 1
+done
+
+if [ $success -eq 0 ]; then
+    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot restart uDHCPd Server after $max_tries tries)"
     exit 1
 fi
+
 /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
 
 # Turn on WAN LED if we have one
