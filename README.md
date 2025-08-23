@@ -18,7 +18,7 @@ The Minibox PPPoE Annihilator is a solution to this problem that is several year
 On the LAN interface side, Minibox is able to forward the received IP address in various ways. According to the standard (and name), the PPP protocol is a point-to-point network protocol. Where we are the *peer* side and the operator is the *remote* side. There is no concept of a subnet mask, network address, broadcast address, prefix, or other such concepts known from the classic TCP/IP stack. Of course, this raises some problems, because if we want to transfer the IP address to the LAN side using the classic TCP/IP stack, there must be some kind of mask. Unfortunately, devices have different implementations of the IP protocol, so Minibox allows you to set several subnet mask modes, which it then broadcasts using DHCP (it is possible to disable this):
 - **Single /32 PPPoE host** - Minibox attempts to assign your router an IP address received from your operator, with a /32 mask - effectively a single host. It sends your operator's gateway IP address as the gateway. Of course, for ARP to work, it also implements proxyarp - but only for this gateway, so as not to overload the MAC table. It assigns itself an IP address completely out of the blue - this is configurable, of course, but it is not recommended to set an address from the private pool; by default, it is an IP from the address pool for documentation purposes. This mode is practically identical to how PPPoE works. Unfortunately, many operating systems do not like the /32 mask, or do not like it when the gateway address is outside the IP address pool (which will be the case).
 - **Point-to-point /31 network** - Minibox creates a point-to-point network based on the RFC3021 standard with a /31 mask. It takes the IP address assigned by your operator as a base and calculates a second one for itself on that basis. For example, if your operator has provided you with the IP address 203.0.0.1, the minibox will assign itself the address 203.0.0.0/31. In this mode, the operator's gateway is not used for anything (PPP can cope without it - an interesting fact). The minibox assigns an address using DHCP with a /31 mask. From the perspective of our router, the gateway is therefore in the same subnet, but again, not all operating systems support the RFC3021 standard. For example, MikroTik RouterOS only introduced such support in version 7.18. The consequence of choosing this mode is the loss of connectivity with the neighbouring address. If the Minibox has assigned itself the address 203.0.0.0, it will treat it as its own and as local. So instead of our neighbour, the Minibox will respond. Unfortunately, this is a sacrifice that must be made in this mode, and it gets even worse.
-- **Standard /30 network** and **Standard /24 network** - Minibox creates standard networks with /30 or /24 masks, depending on your selection. It also assigns itself an IP address based on the one received from the operator - this time from the entire pool. If the operator has assigned you the IP address 203.0.0.1, Minibox will create a local network 203.0.0.0/30 (or /24). It will assign itself the address 203.0.0.2/30 because the one ending with 0 is the network address (RFC3021 in the previous mode completely eliminated network and broadcast addresses). As you can see, the consequence of these modes is the loss of connectivity with three addresses (for /30) or 254 addresses (for /24), as the entire subnet will be treated as local. Fortunately, we very rarely need to connect to other subscribers of our operator.
+- **Standard /30 network**, **Standard /29 network**, **Standard /28 network** or **Standard /24 network** - Minibox creates standard networks with masks /30, /29, /28 or /24 depending on your selection. It also assigns itself an IP address based on the one received from the operator - this time from the entire pool. If the operator has assigned you the IP address 203.0.0.1, Minibox will create a local network 203.0.0.0/30 (or with a different mask). It will assign itself the address 203.0.0.2/30 because the one ending with 0 is the network address (RFC3021 in the previous mode completely eliminated network and broadcast addresses). As you can see, the consequence of these modes is the loss of connectivity with three addresses (for /30) or 254 addresses (for /24), as the entire subnet will be treated as local. Fortunately, we very rarely need to connect to other subscribers of our operator. Sometimes it may happen that our IP address in combination with the selected mask **will** be a network or broadcast address. In this case, Minibox will automatically set a shorter mask - the change will be saved in the permanent configuration.
 
 The good news is that Windows, Linux and MikroTik RouterOS operating systems work well with the first mode.
 PS. On Linux, you need to set up a peer-to-peer connection. `ip link addr add <our IP> peer <gateway IP> dev <interface>`
@@ -37,12 +37,13 @@ The built-in multicast DNS server ([minimdnsd](https://github.com/cnlohr/minimdn
 ### Default login details (for the shell and WebUI)
 
 `root/minibox`
-
 The user database is shared between the shell and the web panel, so changing your password in one place will also change it in the other.
 
 ### Configuration using the shell
 
-By default, Minibox is configured to display the image on the monitor screen. Therefore, if we install it on physical hardware, the easiest way to configure it is in this manner. However, most often we will want to install Minibox on smaller devices - MiniPC, NUC, old firewalls. In most of these cases, access to the monitor will be limited, and it is best to use the serial port. Configuration is mainly done in the `/etc/minibox.cfg` file:
+By default, Minibox is configured to display the image on the monitor screen. Therefore, if we install it on physical hardware, the easiest way to configure it is in this manner. However, most often we will want to install Minibox on smaller devices - MiniPC, NUC, old firewalls. In most of these cases, access to the monitor will be limited, and it is best to use the serial port. 
+
+Configuration is mainly done in the `/etc/minibox.cfg` file:
 
 - `USE_VLAN` - enables VLAN on the WAN interface (default: 0 - disabled)
 - `VLAN_ID` - sets the VLAN ID (default: 1)
@@ -62,7 +63,7 @@ The `/etc/minibox.static` file contains static configuration specific to a given
 
 Each change to the settings requires a reboot (and a quick one if you edit the minibox.cfg file on the fly, which is not recommended). It is much safer to create the `/etc/minibox.cfg.new` file and enter the settings there. Minibox will apply it automatically upon reboot.
 
-#### Setting up access via the serial port
+#### Setting up access via the serial port - only on x86_64 platforms
 
 By default, the Limine bootloader is visible both on the monitor and on the serial port. Therefore, without connecting a monitor, we can access the bootloader:
 
@@ -70,25 +71,42 @@ By default, the Limine bootloader is visible both on the monitor and on the seri
 2. Find the `cmdline` line and add `console=ttyS0,115200` to it. For more embedded devices, `ttyS0` may have a different name.
 3. Press F10. The system should boot up and you should see the login screen
 
+#### Access via serial port - embedded platforms
+
+Depending on the selected embedded platform, there may be an alternative way to access the system shell. Information about such access is provided in the description of images for individual platforms.
+
 ### Configuration using a web browser
 
 The Minibox has a built-in HTTP server through which it can be configured. The default IP address on the LAN side is `192.168.77.1/24`. However, it is worth bearing in mind that when we correctly configure the PPPoE client and it establishes a session, the IP address of the LAN interface will change. The simplest case is with a /32 mask, because then we can set any IP address (without a mask). For other modes, the address is selected based on the one assigned by the operator (usually the first available one).
 
 Configuration via a browser is the recommended method, as WebAPI and internal scripts ensure that no damage occurs. The interface shown in the image below is very clear and equipped with additional help features.
 
-![The image shows a very nice web interface.](.github/ui.png)
-
 ### Available images:
-- `<date>-minibox-generic-x86_64.img.xz` - contains most gigabit network card drivers, disk controllers and mass storage devices. It is intended for general use.
-- `<date>-minibox-qemu-x86_64.img.xz` - contains only drivers used in the QEMU environment. A smaller version intended for virtualisation.
+- `<data>-minibox-generic-x86_64.img.xz` - contains most gigabit network card drivers, disk controllers and mass storage devices. It is intended for general use.
+- `<data>-minibox-qemu-x86_64.img.xz` - contains only drivers used in the QEMU environment. A smaller version intended for virtualisation.
+- `<data>-minibox-nanopi-r2s-arm64.img.xz` - image intended for the **FriendlyElec NanoPi R2S** platform
 
 ### Image installation
 
 Minibox does not have any fancy installers, as it is such a simple system that all you need to do is burn it with Rufus/dd/balenaEtcher to a disk/USB stick/SD card and boot it. The images are prepared to work with both BIOS and UEFI (although there is no support for Secure Boot).
 
+### Minibox on embedded platforms
 
-> You will probably want to set the correct LAN and WAN interfaces in the /etc/minibox.static file if your target machine has multiple ports and they are not detected in sequence. It's not so bad if they are all from the same network card – then you can simply find the LAN and WAN by trial and error. The worst case scenario is when you have different network cards – you will probably want to set the newest one as WAN.
+The Minibox PPPoE Annihilator is available for the following embedded platforms:
 
+#### FriendlyElec NanoPi R2S
+
+The Minibox runs on the tiny NanoPi R2S device. Performance has been tested in conjunction with a PPPoE server running on MikroTik hAP AX^2. Using `iperf3`, speeds of *800-900Mbps* were achieved with MTU 1492, making this microcomputer a good and compact platform for Minibox.
+
+Minibox functionality on NanoPi R2S:
+* LED descriptions:
+	* **SYS**: *lit* - operating system is running, *not lit* - operating system is not running
+	* **WAN**: *lit* - PPPoE session established, *not lit* - PPPoE session not established
+	* **LAN**: *lit* - LAN interface active, *not lit* - LAN interface inactive
+* The main console (U-Boot and kernel) is available on the **DEBUG UART** pins: *11500000,8n1*
+* Additionally, the system shell (after system startup) is available via the USB-C port as a virtual COM port with the following parameters: *115200,8n1*. For comfortable use of the system shell via the USB port, it is best to connect the NanoPi R2S to a USB hub with external power supply, and connect the hub itself to a computer when needed.
+
+> **NOTE!** The Annihilator PPPoE minibox runs NanoPi R2S at maximum processor speed. To avoid overheating and throttling, equip the board with a heat sink, preferably active cooling.
 
 ## Building your own image
 
@@ -96,12 +114,10 @@ The repository has been equipped with useful scripts that support the process of
 
 Before we start working with the repository, we need to download all git submodules (that is why it is best to clone the Minibox repo rather than download zip/tar), which can be done with the command `git submodule update --init`. Then, using the appropriate scripts, we call individual functions:
 
-- `busybox-menuconfig.sh` - opens the Busybox configuration menu for the currently selected configuration profile
 - `clear_build.sh` - completely clears Buildroot and restores it to its original state
-- `linux-menuconfig.sh` - opens the Linux kernel configuration menu for the currently selected configuration profile
-- `menuconfig.sh` - opens the Buildroot configuration menu for the currently selected configuration profile
+- `menuconfig.sh [type]` - opens the configuration menu for the selected package. Available options are: `linux`, `busybox`, `uboot`. If no parameter is specified, the Buildroot configuration menu will be opened
 - `rebuild_and_install_external_packages.sh` - recompiles all external packages
-- `save_busybox_linux_config.sh` - saves the Busybox and Linux kernel configuration permanently (outside the Buildroot directory)
+- `save_package_config.sh` - saves the Busybox, Linux kernel and U-Boot configuration permanently (outside the Buildroot directory)
 - `save_defconfig.sh <configuration name>` - saves the Buildroot configuration profile permanently (outside the Buildroot directory)
 - `set_defconfig.sh <configuration name>` - changes the currently selected Buildroot configuration profile
 
@@ -124,6 +140,7 @@ Components of the final image:
 *   musl - MIT License - [http://musl.libc.org](http://musl.libc.org)
 *   pppd - BSD-style / GPLv2+ - [https://ppp.samba.org/](https://ppp.samba.org/)
 *   Limine Bootloader - BSD-2-Clause - [https://github.com/limine-bootloader/limine](https://github.com/limine-bootloader/limine)
+* Das U-Boot - GPL-2.0+ - [https://github.com/u-boot/u-boot](https://github.com/u-boot/u-boot)
 *   nftables - GPLv2+ - [https://www.netfilter.org/projects/nftables](https://www.netfilter.org/projects/nftables)
 *   libmnl - LGPLv2.1+ - [https://netfilter.org/projects/libmnl](https://netfilter.org/projects/libmnl)
 *   libnftnl - GPLv2+ - [https://netfilter.org/projects/libnftnl/](https://netfilter.org/projects/libnftnl/)
@@ -143,5 +160,6 @@ The repository was built based on [https://github.com/moschiel/buildroot_externa
 I owe the idea for the project to users of many forums and my imagination.
 The idea for the WebAPI was borrowed from the API by [SoftAtHome](https://www.softathome.com/), which was included in my ISP's router.
 The idea for the help section on the right side of the WebUI was borrowed from the UI by [SoftAtHome](https://www.softathome.com/), which was included in my ISP's router.
+The idea for the catchphrase was borrowed from [OpenWrt](https://github.com/openwrt/openwrt).
 
 And I'm sure I was inspired by many things that I've already forgotten, for which I am grateful.
