@@ -5,6 +5,7 @@
 #
 
 MINIBOX_DYNAMIC="/var/run/minibox.dynamic"
+MINIBOX_CFG="/etc/minibox.cfg"
 
 # Read minibox configuration
 . /etc/minibox.cfg
@@ -43,12 +44,38 @@ case "$LAN_MASK" in
         ;;
     *)
         NEW_IP=$(/usr/sbin/get_free_ip "$IPLOCAL" "$LAN_MASK")
-        if ! /usr/sbin/ip addr add "$NEW_IP"/"$LAN_MASK" dev "$LAN_IF"; then
+
+        while true; do
+            eval $(ipcalc -n "$IPLOCAL/$LAN_MASK")
+            eval $(ipcalc -b "$IPLOCAL/$LAN_MASK")
+
+            NETWORK_IP="${NETWORK#*=}"
+            BROADCAST_IP="${BROADCAST#*=}"
+
+            if [ "$IPLOCAL" = "$NETWORK_IP" ] || [ "$IPLOCAL" = "$BROADCAST_IP" ]; then
+                /usr/bin/logger -p "daemon.warn" -t "[MNBOX-PPP]" \
+                    "Address $IPLOCAL is network or broadcast for mask /$LAN_MASK, decrementing mask..."
+
+                LAN_MASK=$((LAN_MASK - 1))
+                /usr/bin/sed -i "s/^LAN_MASK=.*/LAN_MASK=$LAN_MASK/" "$MINIBOX_CFG"
+
+                if [ "$LAN_MASK" -le 8 ]; then
+                    /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" \
+                        "FAIL (no valid subnet mask left for $IPLOCAL)"
+                    exit 1
+                fi
+            else
+                break
+            fi
+        done
+
+        if ! /usr/sbin/ip addr add "$NEW_IP/$LAN_MASK" dev "$LAN_IF"; then
             /usr/bin/logger -p "daemon.error" -t "[MNBOX-PPP]" "FAIL (cannot set address on $LAN_IF)"
             exit 1
         fi
+
         /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
-        /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Configured LAN interface with IP: $NEW_IP"
+        /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "Configured LAN interface with IP: $NEW_IP/$LAN_MASK"
         ;;
 esac
 

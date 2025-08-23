@@ -167,6 +167,8 @@ let mnbox_i18n_messages = {
             single_host: 'Pojedynczy host PPPoE /32',
             point_point_net: 'Sieć typu punkt-punkt /31',
             standard_net_30: 'Standardowa sieć /30',
+            standard_net_29: 'Standardowa sieć /29',
+            standard_net_28: 'Standardowa sieć /28',
             standard_net_24: 'Standardowa sieć /24',
             lan_ip: 'Adres IP interfejsu LAN',
             enter_ip: 'Podaj adres IP urządzenia jaki ma zostać ustawiony na interfejsie LAN',
@@ -191,6 +193,10 @@ let mnbox_i18n_messages = {
                                 'lokalną.',
             help_addresses_std30: '<b>Standardowa sieć /30</b> - interfejs LAN uzyskuje podsieć /30 na podstawie adresu IP z PPPoE. Następuje utrata '+
                                 'dostępu do 3 publicznych IP z tej przestrzeni (traktowane są jako lokalne). DHCP działa analogicznie jak w poprzednim trybie.',
+            help_addresses_std29: '<b>Standardowa sieć /30</b> - interfejs LAN uzyskuje podsieć /29 na podstawie adresu IP z PPPoE. Następuje utrata '+
+                                'dostępu do 7 publicznych IP z tej przestrzeni (traktowane są jako lokalne). DHCP działa analogicznie jak w poprzednim trybie.',
+            help_addresses_std28: '<b>Standardowa sieć /30</b> - interfejs LAN uzyskuje podsieć /28 na podstawie adresu IP z PPPoE. Następuje utrata '+
+                                'dostępu do 15 publicznych IP z tej przestrzeni (traktowane są jako lokalne). DHCP działa analogicznie jak w poprzednim trybie.',
             help_addresses_std24: '<b>Standardowa sieć /24</b> - interfejs LAN uzyskuje podsieć /24 na podstawie adresu IP z PPPoE. Następuje utrata '+
                                 'dostępu do 255 adresów z tej przestrzeni (traktowane są jako lokalne). DHCP działa analogicznie jak w poprzednim trybie.',
             help_addresses_text2: 'Więcej informacji na temat działania tych ustawień znajduje się w sekcji <b>Pomoc</b>.',
@@ -272,7 +278,7 @@ let mnbox_i18n_messages = {
                     'W tych trybach Minibox traktuje adres IP otrzymany przez operatora jako cześć lokalnej sieci o masce /30 lub masce /24. Są to najbardziej kompatybilne tryby, gdyż w taki sposób działają obecne sieci. '+
                     'Czasem operatorzy oferują stałe adresy IP z maską /30, z tylko jednym efektywnym adresem (jeden przeznaczony jest dla routera operatora, a dwa pozostałe to adresy sieci i rozgłoszeniowy). Dokładnie w taki '+
                     'sposób działa też Minibox. Przydziela sobie najbliższy wolny adres IP, a ten, który operator przydzielił przesyła urządzeniowi końcowemu. Przy masce /30 tracimy jedynie 3 adresy z sieci Internet, które '+
-                    'traktowane są odtąd za lokalne, a przy masce /24 tracimy ich aż 255.',
+                    'traktowane są odtąd za lokalne, a przy masce /24 tracimy ich aż 255. Uwaga! Jeżeli okaże się, że dla wybranej maski nasz adres IP będzie adresem sieci lub adresem rozgłoszeniowym, to Minibox sam wybierze krótszą maskę.',
             how_works_paragraph5: 'Oprócz tego, Minibox oferuje również pewną funkcję o nazwie <b>nadpisywanie TTL</b>. Powoduje ona zwiększenia wartości TTL w pakietach IP o 1, przez co narzędzia typu traceroute czy tracepath nie mogą '+
                     'wykryć Miniboxa po drodze - z perspektywy użytkownika końcowego Minibox jest zupełnie przezroczysty. Oczywiście, jeżeli taka opcja modyfikacji pakietów nie jest akceptowalna to można ją wyłączyć, jednak '+
                     'wtedy traceroute i podobne narzędzia będą pokazywać po drodze adres IP Miniboxa.',
@@ -422,6 +428,8 @@ let mnbox_i18n_messages = {
             single_host: 'Single /32 PPPoE host',
             point_point_net: 'Point-to-point /31 network',
             standard_net_30: 'Standard /30 network',
+            standard_net_29: 'Standard /29 network',
+            standard_net_28: 'Standard /28 network',
             standard_net_24: 'Standard /24 network',
             lan_ip: 'LAN interface IP address',
             enter_ip: 'Enter the IP address of the device to be set on the LAN interface.',
@@ -441,6 +449,8 @@ let mnbox_i18n_messages = {
             help_addresses_single: '<b>Single /32 PPPoE host</b> - the LAN operates as a point-to-point interface. The local address is set via the <i>LAN interface IP address</i> field, while the remote address (of the destination router) is obtained from the PPPoE server. DHCP (if enabled) assigns a /32 address and gateway from PPPoE.',
             help_addresses_point: '<b>Point-to-point /31 network</b> - the LAN address is calculated based on the PPPoE address with a /31 mask. Access to the neighbouring IP address on the Internet is lost (it is treated as local). DHCP assigns a /31 address and a local gateway.',
             help_addresses_std30: '<b>Standard /30 network</b> - the LAN interface obtains a /30 subnet based on the IP address from PPPoE. Access to 3 public IPs from this space is lost (they are treated as local). DHCP works in the same way as in the previous mode.',
+            help_addresses_std29: '<b>Standard /29 network</b> - the LAN interface obtains a /29 subnet based on the IP address from PPPoE. Access to 7 public IPs from this space is lost (they are treated as local). DHCP works in the same way as in the previous mode.',
+            help_addresses_std28: '<b>Standard /28 network</b> - the LAN interface obtains a /28 subnet based on the IP address from PPPoE. Access to 15 public IPs from this space is lost (they are treated as local). DHCP works in the same way as in the previous mode.',
             help_addresses_std24: '<b>Standard /24 network</b> - the LAN interface obtains a /24 subnet based on the IP address from PPPoE. Access to 255 addresses from this space is lost (they are treated as local). DHCP works in the same way as in the previous mode.',
             help_addresses_text2: 'For more information on how these settings work, see the <b>Help</b> section.',
 
@@ -510,10 +520,11 @@ let mnbox_i18n_messages = {
                     'because it is usually located in a separate subnet, but will directly provide the Minibox address as the gateway (in our example, this is 192.168.1.0). The gateway is therefore located in the same subnet '+
                     'as the host address, although in the case of RFC3021 and the /31 mask, there is no concept of a network address and a broadcast address. This means that we only lose access to one IP address - if, for example, '+
                     'our neighbour received 192.168.1.0 from the operator, this address is now treated as local to the Minibox and will not be released to the Internet. Fortunately, we very rarely need to connect to addresses neighbouring ours.',
-            how_works_paragraph4: 'The worst-case scenario is when neither the /32 mask nor the RFC3021 standard and the /31 mask are supported. In this case, we are forced to use the <b>Standard /30 Network</b> or <b>Standard /24 Network</b> mode. '+
-                    'In these modes, Minibox treats the IP address received from the operator as part of a local network with a /30 or /24 mask. These are the most compatible modes, as this is how current networks operate. Sometimes operators offer fixed IP '+
+            how_works_paragraph4: 'The worst-case scenario is when neither the /32 mask nor the RFC3021 standard and the /31 mask are supported. In this case, we are forced to use the <b>Standard /30 Network</b>, <b>Standard /29 Network</b>, <b>Standard /28 Network</b>, <b>Standard /24 Network</b> mode. '+
+                    'In these modes, Minibox treats the IP address received from the operator as part of a local network with a /30, /29, /28 or /24 mask. These are the most compatible modes, as this is how current networks operate. Sometimes operators offer fixed IP '+
                     'addresses with a /30 mask, with only one effective address (one is reserved for the operator\'s router, and the other two are network and broadcast addresses). This is exactly how Minibox works. It assigns itself the nearest available IP '+
-                    'address and forwards the one assigned by the operator to the end device. With a /30 mask, we only lose 3 addresses from the Internet network, which are now treated as local, and with a /24 mask, we lose as many as 255.',
+                    'address and forwards the one assigned by the operator to the end device. With a /30 mask, we only lose 3 addresses from the Internet network, which are now treated as local, and with a /24 mask, we lose as many as 255. Please note! If it turns out that for the selected mask, our IP'+
+                    'address will be a network address or a broadcast address, Minibox will automatically select a shorter mask.',
             how_works_paragraph5: 'In addition, Minibox also offers a feature called <b>TTL mangling</b>. This increases the TTL value in IP packets by 1, preventing tools such as traceroute or tracepath from '+
                     'detect Minibox along the way - from the end user\'s perspective, Minibox is completely transparent. Of course, if this packet modification option is not acceptable, it can be disabled, but '+
                     'then traceroute and similar tools will show the Minibox IP address along the way.',
