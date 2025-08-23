@@ -19,17 +19,17 @@ start() {
     if [ "$BOARD" = "FriendlyElec NanoPi R2S" ]; then
 
         # Wait for eth0 interrupt to show
-        while [ ! -d "/proc/irq/46/" ]; do
+        while [ ! -d "/proc/irq/46" ]; do
             sleep 1
         done
 
         # Wait for eth1 interrupt to show
-        while [ ! -d "/proc/irq/26/" ]; do
+        while [ ! -d "/proc/irq/26" ]; do
             sleep 1
         done
 
-        echo 4 > /proc/irq/46/smp_affinity # eth0 on CPU3
-        echo 8 > /proc/irq/26/smp_affinity # eth1 on CPU4
+        echo 4 > "/proc/irq/46/smp_affinity" # eth0 on CPU3
+        echo 8 > "/proc/irq/26/smp_affinity" # eth1 on CPU4
     fi
 
     echo "OK"
