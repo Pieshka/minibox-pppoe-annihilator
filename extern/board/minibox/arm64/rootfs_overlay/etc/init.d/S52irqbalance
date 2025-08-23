@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# IRQ manual balance set for embedded devices
+DAEMON="irqbalance"
+
+start() {
+    # Check if we have device model before we start
+    if [ ! -f "/proc/device-tree/model" ]; then
+        exit 1
+    fi
+
+    printf 'Starting %s: ' "$DAEMON"
+    status=0
+
+    # Load board name
+    BOARD=$(cat /proc/device-tree/model)
+
+    # Apply settings for FriendlyElec NanoPi R2S
+    if [ "$BOARD" = "FriendlyElec NanoPi R2S" ]; then
+        echo 4 > /proc/irq/46/smp_affinity # eth0 on CPU3
+        echo 8 > /proc/irq/26/smp_affinity # eth1 on CPU4
+    fi
+
+    echo "OK"
+    return 0
+}
+
+stop() {
+    return 0
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)
+        "$1";;
+    reload)
+        restart;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload}"
+        exit 1
+esac
