@@ -1,0 +1,61 @@
+; SPDX-License-Identifier: MIT
+; Copyright 2025 Pieszka
+;
+; minibox-port.inf
+; Simple INF file for Minibox PPPoE Annihilator's internal ACM USB Gadget
+; It's mainly used for Windows XP to Windows 8.1, as Windows 10 and 11
+; have a Microsoft-provided INF file. Although you'll need your own INF
+; if you want to have your name shown in Device Manager.
+;
+; Default VID = 0x0525, PID = 0xA4A7
+; You need to change them if you want to distribute
+; an appliance with Minibox preinstalled.
+;
+; For Windows 10 and 11 you also need to generate and sign a cat file
+; with an EV or Code Signing certficate (you don't need Microsoft's WHQL
+; as this file does not provide own kernel drivers)
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = Ports
+ClassGuid   = {4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider    = %MFGNAME%
+DriverVer   = 08/24/2025,1.0.0.0
+CatalogFile = minibox-port.cat
+
+[Manufacturer]
+%MFGNAME% = DeviceList, NTamd64, NTarm64, NTx86
+
+[DeviceList]
+%DESCRIPTION% = DriverInstall, USB\VID_0525&PID_A4A7
+
+[DeviceList.NTamd64]
+%DESCRIPTION% = DriverInstall, USB\VID_0525&PID_A4A7
+
+[DeviceList.NTarm64]
+%DESCRIPTION% = DriverInstall, USB\VID_0525&PID_A4A7
+
+[DeviceList.NTx86]
+%DESCRIPTION% = DriverInstall, USB\VID_0525&PID_A4A7
+
+[DriverInstall]
+Include=mdmcpq.inf
+CopyFiles=DriverCopy
+
+[DriverInstall.Services]
+Include=mdmcpq.inf
+AddService=usbser, 0x00000002, DriverService
+
+[DriverCopy]
+
+[DriverService]
+DisplayName = %SERVICE%
+ServiceType = 1
+StartType   = 3
+ErrorControl= 1
+ServiceBinary = %12%\usbser.sys
+
+[Strings]
+MFGNAME     = "Minibox PPPoE Annihilator"
+DESCRIPTION = "Minibox USB Serial Console"
+SERVICE     = "Minibox USB Serial Console"
