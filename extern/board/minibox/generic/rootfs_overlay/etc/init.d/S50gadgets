@@ -8,7 +8,7 @@ PID_FILE="/var/run/usb-serial-getty.pid"
 # You need to change this if you want
 # to distribute Minibox as an appliance
 VENDOR_ID="0x0525" # NetChip
-PRODUCT_ID="0xa4a6" # Linux-USB Serial Gadget
+PRODUCT_ID="0xa4a7" # Linux-USB Serial Gadget (CDC ACM mode)
 SERIAL_NUMBER="73616B757961"
 MANUFACTURER="Minibox PPPoE Annihilator"
 PRODUCT="USB Serial Console"
@@ -29,13 +29,13 @@ start() {
     status=0
 
     # Check if we have an UDC available
-    if [ -z "$(ls /sys/class/udc)" ]; then
+    if [ -z "$(ls /sys/class/udc 2>/dev/null)" ]; then
         echo "NO UDC AVAILABLE"
         exit 1
     fi
 
     # Mount ConfigFS
-    if ! /usr/bin/mount -t configfs none /sys/kernel/config; then
+    if ! /usr/bin/mount -t configfs none /sys/kernel/config 2>/dev/null; then
         echo "CONFIGFS UNAVAILABLE"
         exit 1
     fi
