@@ -88,16 +88,16 @@ fi
 /usr/bin/logger -p "daemon.info" -t "[MNBOX-PPP]" "OK"
 
 # Create minibox dynamic file 
-echo "PPP_IP=$IPLOCAL" > "$MINIBOX_DYNAMIC"
+echo "PPP_IP=\"$IPLOCAL\"" > "$MINIBOX_DYNAMIC"
 if [ -n "$NEW_IP" ]; then
-    echo "PPP_GW=$NEW_IP" >> "$MINIBOX_DYNAMIC"
+    echo "PPP_GW=\"$NEW_IP\"" >> "$MINIBOX_DYNAMIC"
 else
-    echo "PPP_GW=$IPREMOTE" >> "$MINIBOX_DYNAMIC"
+    echo "PPP_GW=\"$IPREMOTE\"" >> "$MINIBOX_DYNAMIC"
 fi
 if [ -n "$DNS2" ]; then
-    echo "PPP_DNS=$DNS1 $DNS2" >> "$MINIBOX_DYNAMIC"
+    echo "PPP_DNS=\"$DNS1 $DNS2\"" >> "$MINIBOX_DYNAMIC"
 else
-    echo "PPP_DNS=$DNS1" >> "$MINIBOX_DYNAMIC"
+    echo "PPP_DNS=\"$DNS1\"" >> "$MINIBOX_DYNAMIC"
 fi
 
 # Restart uDHCPd Server
