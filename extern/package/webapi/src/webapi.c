@@ -1089,6 +1089,8 @@ uint8_t* minibox_get_session_token()
             close(fd);
             return NULL;
         }
+
+        fsync(fd);
     }
 
     /* Close the file as we don't need it */
@@ -1684,6 +1686,9 @@ int minibox_set_config(const minibox_config* new_config)
         new_config->lan_dhcp, new_config->lan_lease,
         new_config->mangle_ttl);
 
+    /* Flush all disk buffers */
+    fflush(config_file);
+
     /* Now we close the file and exit */
     fclose(config_file);
 
@@ -1743,6 +1748,8 @@ int minibox_create_shutdown_flag()
         close(fd);
         return -1;
     }
+
+    fsync(fd);
 
     close(fd);
     return 0;
