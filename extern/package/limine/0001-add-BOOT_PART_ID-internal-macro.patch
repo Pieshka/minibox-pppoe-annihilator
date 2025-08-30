@@ -1,0 +1,38 @@
+diff -Naru limine-a/common/lib/config.c limine-b/common/lib/config.c
+--- limine-a/common/lib/config.c	2025-08-16 12:55:38.000000000 +0200
++++ limine-b/common/lib/config.c	2025-08-30 18:28:56.615262600 +0200
+@@ -300,6 +300,34 @@
+     fw_type_macro->next = macros;
+     macros = fw_type_macro;
+ 
++    struct macro *boot_part_id = ext_mem_alloc(sizeof(struct macro));
++    strcpy(boot_part_id->name, "BOOT_PART_ID");
++#if defined (UEFI)
++    if(boot_volume->part_guid_valid) {
++        guid_to_string(&(boot_volume->part_guid), boot_part_id->value);
++    } else {
++        strcpy(boot_part_id->value, "00000000-0000-0000-0000-000000000000");
++    }
++#else
++    struct volume boot_part = {0};
++    if(part_get(&boot_part, boot_volume, boot_volume->partition) == 0 && boot_part.part_guid_valid) {
++        guid_to_string(&(boot_part.part_guid), boot_part_id->value);
++    } else {
++        uint32_t mbr_id = mbr_get_id(boot_volume);
++        const char digits[] = "0123456789abcdef";
++        for (int i = 0; i < 8; i++) {
++            boot_part_id->value[i] = digits[(mbr_id >> ((7 - i) * 4)) & 0xF];
++        }
++        boot_part_id->value[8] = '-';
++        for (int i = 0; i < 2; i++) {
++            boot_part_id->value[9+i] = digits[((boot_volume->partition + 1) >> ((1 - i) * 4)) & 0xF];
++        }
++        boot_part_id->value[11] = '\0';
++    }
++#endif
++    boot_part_id->next = macros;
++    macros = boot_part_id;
++
+     for (size_t i = 0; i < config_size;) {
+         if ((config_size - i >= 3 && memcmp(config_addr + i, "\n${", 3) == 0)
+          || (config_size - i >= 2 && i == 0 && memcmp(config_addr, "${", 2) == 0)) {
