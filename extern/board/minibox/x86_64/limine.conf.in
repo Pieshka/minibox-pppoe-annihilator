@@ -1,11 +1,16 @@
+# Configuration macros
+${ROOT_OFFSET}=1
+
+# Global Limine configuration
 timeout: 5
 serial: yes
 serial_baudrate: 115200
 interface_branding: Minibox PPPoE Annihilator - ${FW_TYPE}
 
+# Boot entries
 /Boot Minibox operating system
     protocol: linux
     path: boot():/bzImage
-    cmdline: root=PARTUUID=@ROOT_PARTUUID@ rootfstype=ext4 rootwait ro fsck.mode=force fsck.repair=yes
+    cmdline: root=PARTUUID=${BOOT_PART_ID}/PARTNROFF=${ROOT_OFFSET} rootfstype=ext4 rootwait ro fsck.mode=force fsck.repair=yes
     textmode: yes
 

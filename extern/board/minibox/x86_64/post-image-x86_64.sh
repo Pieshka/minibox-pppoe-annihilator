@@ -45,19 +45,13 @@ BOOT_SIZE_BYTES=$(du -bc \
 BOOT_SIZE_MB=$(( (BOOT_SIZE_BYTES + 2 * 1024 * 1024) / 1024 / 1024))
 BOOT_SIZE_STR="${BOOT_SIZE_MB}M"
 
-# Generate random UUID for GPT partitions
-ROOTFS_UUID=$(cat /proc/sys/kernel/random/uuid)
-BOOT_UUID=$(cat /proc/sys/kernel/random/uuid)
-
 # Generate genimage configuration
-sed -e "s|@BOOT_PARTUUID@|${BOOT_UUID}|" \
-    -e "s|@ROOT_PARTUUID@|${ROOTFS_UUID}|" \
-    -e "s|@BOOT_PART_SIZE@|${BOOT_SIZE_STR}|" \
+sed -e "s|@BOOT_PART_SIZE@|${BOOT_SIZE_STR}|" \
     "${GENIMAGE_TEMPLATE}" > "${GENIMAGE_CFG}"
 
 # Generate limine configuration
-sed -e "s|@ROOT_PARTUUID@|${ROOTFS_UUID}|" \
-    "${LIMINE_CONFIG_TEMPLATE}" > "${LIMINE_CONFIG}"
+# currently there are no placeholders in the template
+cat "${LIMINE_CONFIG_TEMPLATE}" > "${LIMINE_CONFIG}"
 
 # Prepare boot partition structure
 trap 'rm -rf "${ROOTPATH_TMP}" "${TMP_BOOT}" "${GENIMAGE_CFG}" "${LIMINE_CONFIG}"' EXIT
