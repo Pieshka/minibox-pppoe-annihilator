@@ -27,3 +27,5 @@ if [ "$1" = "$LAN_IF" ]; then
     done
 fi
 
+# Exit cleanly
+exit 0
