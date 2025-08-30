@@ -1,16 +1,48 @@
-# Loading addresses
+# Configuration variables
 setenv kernel_addr_r 0x03200000
 setenv fdt_addr_r    0x01f00000
 
-# Boot arguments
-setenv bootargs "root=/dev/mmcblk0p2 ro rootwait fsck.mode=force fsck.repair=yes console=ttyS2,1500000n8"
+setenv bootpart      1
+setenv console_cfg   ttyS2,1500000n8
 
-# Info
-echo "Starting Minibox PPPoE Annihilator"
+# Find current mmc device
+setenv mmcdev -1
+for dev in 0 1; do
+    mmc dev ${dev}
+    if itest $? == 0; then
+        setenv mmcdev ${dev}
+        break
+    fi
+done
 
-# Load kernel and FDT
-fatload mmc 1:1 ${kernel_addr_r} Image
-fatload mmc 1:1 ${fdt_addr_r} rk3328-nanopi-r2s.dtb
+# Exit if no mmc device found (which is weird)
+if itest ${mmcdev} == -1; then
+    echo "[ERROR] No MMC device found!"
+    exit
+fi
+
+# Calculate rootfs partition (next to the boot partition)
+setexpr nextpart     ${bootpart} + 1
+
+# Get rootfs partition PARTUUID
+part uuid mmc ${mmcdev}:${nextpart} rootuuid
+
+# Set correct boot arguments
+setenv bootargs "root=PARTUUID=${rootuuid} ro rootwait fsck.mode=force fsck.repair=yes console=${console_cfg}"
+
+# Print starting information
+echo "Starting Minibox PPPoE Annihilator..."
+echo "Loaded the bootscript from mmc ${mmcdev}"
+echo "Minibox file system detected at partition ${rootuuid}"
+
+# Load kernel
+echo "Loading kernel from mmc ${mmcdev}:${bootpart} into ${kernel_addr_r}"
+fatload mmc ${mmcdev}:${bootpart} ${kernel_addr_r} Image
+
+# Load DTB
+echo "Loading DTB from mmc ${mmcdev}:${bootpart} into ${fdt_addr_r}"
+fatload mmc ${mmcdev}:${bootpart} ${fdt_addr_r} rk3328-nanopi-r2s.dtb
 
 # Boot kernel
+echo "Booting kernel with parameters ${bootargs}"
 booti ${kernel_addr_r} - ${fdt_addr_r}
