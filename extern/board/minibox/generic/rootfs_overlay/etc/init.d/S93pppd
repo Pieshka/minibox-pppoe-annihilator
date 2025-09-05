@@ -33,8 +33,8 @@ start() {
     fi
 
     # Create pap and chap files
-    echo "$PPPOE_USER * $PPPOE_PASS *" > /etc/ppp/pap-secrets
-    echo "$PPPOE_USER * $PPPOE_PASS *" > /etc/ppp/chap-secrets
+    echo "\"$PPPOE_USER\" * \"$PPPOE_PASS\" *" > /etc/ppp/pap-secrets
+    echo "\"$PPPOE_USER\" * \"$PPPOE_PASS\" *" > /etc/ppp/chap-secrets
     /usr/bin/chmod 600 /etc/ppp/*-secrets
 
     # Build argument string
