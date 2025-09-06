@@ -139,7 +139,7 @@ Components of the final image:
 *   linux - GPL-2.0 WITH linux-syscall-note - [https://www.kernel.org/](https://www.kernel.org/)
 *   musl - MIT License - [http://musl.libc.org](http://musl.libc.org)
 *   pppd - BSD-style / GPLv2+ - [https://ppp.samba.org/](https://ppp.samba.org/)
-*   Limine Bootloader - BSD-2-Clause - [https://github.com/limine-bootloader/limine](https://github.com/limine-bootloader/limine)
+*   Limine Bootloader - BSD-2-Clause - [https://codeberg.org/Limine/Limine](https://codeberg.org/Limine/Limine)
 * Das U-Boot - GPL-2.0+ - [https://github.com/u-boot/u-boot](https://github.com/u-boot/u-boot)
 *   nftables - GPLv2+ - [https://www.netfilter.org/projects/nftables](https://www.netfilter.org/projects/nftables)
 *   libmnl - LGPLv2.1+ - [https://netfilter.org/projects/libmnl](https://netfilter.org/projects/libmnl)
