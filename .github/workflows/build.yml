@@ -1,0 +1,106 @@
+name: Build & Release Minibox
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [generic, qemu, nanopi-r2s]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y \
+            libelf-dev \
+            which \
+            sed \
+            make \
+            binutils \
+            build-essential \
+            diffutils \
+            gcc \
+            g++ \
+            bash \
+            patch \
+            gzip \
+            bzip2 \
+            perl \
+            tar \
+            cpio \
+            unzip \
+            rsync \
+            file \
+            bc \
+            findutils \
+            gawk \
+            wget \
+            nasm \
+            mtools \
+            lld \
+            llvm \
+            clang
+
+      - name: Prepare Buildroot config
+        run: |
+          chmod +x ./set_defconfig.sh
+          ./set_defconfig.sh minibox-${{ matrix.variant }}
+
+      - name: Build the image
+        run: |
+          make -C buildroot
+
+      - name: Generate SHA256 checksum
+        run: |
+          cd buildroot/output/images
+          for f in *.img.xz; do
+            sha256sum "$f" > "$f.sha256";
+          done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: minibox-${{ matrix.variant }}
+          path: |
+            buildroot/output/images/*.img.xz
+            buildroot/output/images/*.img.xz.sha256
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          mode: "HYBRID"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          files: artifacts/**/*
