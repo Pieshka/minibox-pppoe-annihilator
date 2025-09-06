@@ -1,5 +1,5 @@
-HOST_LIMINE_VERSION = 9.6.1
-HOST_LIMINE_SITE = https://github.com/limine-bootloader/limine/releases/download/v$(HOST_LIMINE_VERSION)
+HOST_LIMINE_VERSION = 9.6.5
+HOST_LIMINE_SITE = https://codeberg.org/Limine/Limine/releases/download/v$(HOST_LIMINE_VERSION)
 HOST_LIMINE_SOURCE = limine-$(HOST_LIMINE_VERSION).tar.xz
 HOST_LIMINE_LICENSE = BSD-2-Clause
 HOST_LIMINE_LICENSE_FILES = COPYING
